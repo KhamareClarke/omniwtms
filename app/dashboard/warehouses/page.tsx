@@ -31,7 +31,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Plus, Pencil, Trash2, Search, ChevronLeft, ChevronRight, Building2 } from 'lucide-react';
-import WarehouseForm from '@/components/warehouses/warehouse-form';
+import { WarehouseForm } from '@/components/warehouses/warehouse-form';
 import { toast } from 'sonner';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AnimatedGradientBackground } from "@/components/ui/animated-gradient-background";
@@ -110,6 +110,23 @@ interface LocationSuggestion {
   lon: number;
 }
 
+interface WarehouseFormData {
+  name: string;
+  location: string;
+  capacity: number;
+  manager: string;
+  coordinates: [number, number];
+}
+
+interface WarehouseFormProps {
+  onSubmit: (data: WarehouseFormData) => Promise<void>;
+  warehouse?: Warehouse | null;
+  isLoading: boolean;
+  locationSuggestions: LocationSuggestion[];
+  onLocationChange: (location: string) => Promise<void>;
+  isValidatingLocation: boolean;
+}
+
 // Enhanced formatting functions
 const formatNumber = (num: number) => {
   return num.toLocaleString();
@@ -141,6 +158,86 @@ export default function WarehousesPage() {
   useEffect(() => {
     checkAuthAndFetchData();
   }, []);
+
+  const fetchProducts = async (clientId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select(`
+          id,
+          name,
+          quantity,
+          sku,
+          category,
+          condition,
+          price,
+          status,
+          client_id
+        `)
+        .eq('client_id', clientId)
+        .order('name');
+      
+      if (error) throw error;
+      setProducts(data || []);
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      toast.error('Failed to fetch products');
+    }
+  };
+
+  const fetchMovements = async () => {
+    try {
+      const currentUser = localStorage.getItem('currentUser');
+      if (!currentUser) {
+        toast.error('Please sign in to view stock movements');
+        return;
+      }
+
+      const userData = JSON.parse(currentUser);
+      
+      const { data, error } = await supabase
+        .from('inventory_movements')
+        .select(`
+          *,
+          warehouses:warehouse_id (
+            name
+          ),
+          products:product_id (
+            name,
+            sku
+          )
+        `)
+        .eq('client_id', userData.id)
+        .order('timestamp', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching movements:', error);
+        throw error;
+      }
+
+      setStockMovements(data || []);
+    } catch (error) {
+      console.error('Error fetching movements:', error);
+      toast.error('Failed to fetch movement history');
+    }
+  };
+
+  const fetchInventory = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('warehouse_inventory')
+        .select(`
+          *,
+          warehouses (name),
+          products (name, sku)
+        `);
+      if (error) throw error;
+      setWarehouseInventory(data || []);
+    } catch (error) {
+      console.error('Error fetching inventory:', error);
+      toast.error('Failed to fetch inventory');
+    }
+  };
 
   const checkAuthAndFetchData = async () => {
     const currentUser = localStorage.getItem('currentUser');
@@ -182,7 +279,7 @@ export default function WarehousesPage() {
     }
   };
 
-  const handleAddWarehouse = async (data) => {
+  const handleAddWarehouse = async (data: WarehouseFormData) => {
     const currentUser = localStorage.getItem('currentUser');
     if (!currentUser) {
       toast.error('Please sign in to add a warehouse');
@@ -200,94 +297,82 @@ export default function WarehousesPage() {
       const locationData = await response.json();
 
       if (!locationData || locationData.length === 0) {
-        toast.error('Please enter a valid location');
+        toast.error('Invalid location. Please enter a valid address.');
         return;
       }
 
-      const location = locationData[0];
-      const coordinates = [parseFloat(location.lat), parseFloat(location.lon)];
+      const { data: warehouseData, error } = await supabase.from('warehouses').insert([
+        {
+          client_id: userData.id,
+          name: data.name,
+          location: data.location,
+          capacity: data.capacity,
+          manager: data.manager,
+          coordinates: data.coordinates,
+          status: 'active',
+          created_at: new Date().toISOString()
+        }
+      ]).select().single();
 
-      const newWarehouse = {
-        name: data.name,
-        location: location.display_name, // Use the standardized address
-        coordinates: coordinates,
-        capacity: parseInt(data.capacity) || 10000,
-        utilization: 0,
-        revenue: 0,
-        products: 0,
-        manager: data.manager,
-        status: 'active',
-        client_id: userData.id
-      };
+      if (error) throw error;
 
-      const { data: createdWarehouse, error: insertError } = await supabase
-        .from('warehouses')
-        .insert([newWarehouse])
-        .select('*')
-        .single();
-
-      if (insertError) {
-        console.error('Insert error:', insertError);
-        throw insertError;
-      }
-
-      if (!createdWarehouse) {
-        throw new Error('No warehouse data returned');
-      }
-      
-      setWarehouses(prev => [createdWarehouse, ...prev]);
+      setWarehouses(prev => [warehouseData, ...prev]);
       setShowAddDialog(false);
-      toast.success('Warehouse added successfully');
+      toast.success('Warehouse added successfully!');
     } catch (error) {
-      console.error('Error adding warehouse:', error);
-      toast.error(`Failed to add warehouse: ${error.message}`);
+      if (error instanceof Error) {
+        console.error('Error adding warehouse:', error.message);
+        toast.error(error.message);
+      } else {
+        console.error('Unknown error adding warehouse:', error);
+        toast.error('Failed to add warehouse');
+      }
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleEditWarehouse = async (data) => {
-    if (!editingWarehouse?.id) return;
-
-    const currentUser = localStorage.getItem('currentUser');
-    if (!currentUser) {
-      toast.error('Please sign in to edit warehouses');
-      return;
-    }
+  const handleEditWarehouse = async (data: WarehouseFormData) => {
+    if (!editingWarehouse) return;
 
     try {
       setIsLoading(true);
-      const userData = JSON.parse(currentUser);
 
-      // Validate location before updating
+      // Validate location before saving
       const response = await fetch(
         `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(data.location)}&limit=1`
       );
       const locationData = await response.json();
 
       if (!locationData || locationData.length === 0) {
-        toast.error('Please enter a valid location');
+        toast.error('Invalid location. Please enter a valid address.');
         return;
       }
 
-      const location = locationData[0];
-      const coordinates = [parseFloat(location.lat), parseFloat(location.lon)];
-
       const { error } = await supabase
         .from('warehouses')
-        .update({ 
+        .update({
           name: data.name,
-          location: location.display_name, // Use the standardized address
-          coordinates: coordinates,
+          location: data.location,
           capacity: data.capacity,
           manager: data.manager,
+          coordinates: data.coordinates,
           updated_at: new Date().toISOString()
         })
-        .eq('id', editingWarehouse.id)
-        .eq('client_id', userData.id);
+        .eq('id', editingWarehouse.id);
 
       if (error) throw error;
 
+      setWarehouses(prev =>
+        prev.map(w => (w.id === editingWarehouse.id ? { ...w, ...data } : w))
+      );
+      setEditingWarehouse(null);
+      toast.success('Warehouse updated successfully!');
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error('Error updating warehouse:', error.message);
+        toast.error(error.message);
+      } else {
       setWarehouses(prev => 
         prev.map(w => w.id === editingWarehouse.id ? {
           ...w,
@@ -338,188 +423,38 @@ export default function WarehousesPage() {
     }
   };
 
-  const handleAssignStock = async () => {
+  const handleAssignStock = async (quantity: number) => {
     if (!selectedWarehouse) {
-      toast.error('Please select a warehouse.');
-      return;
-    }
-
-    const currentUser = localStorage.getItem('currentUser');
-    if (!currentUser) {
-      toast.error('Please sign in to assign stocks.');
+      toast.error('Please select a warehouse first');
       return;
     }
 
     try {
-      const userData = JSON.parse(currentUser);
       setIsLoading(true);
-
-      const stockAssignments = Object.entries(quantities)
-        .filter(([_, quantity]) => quantity > 0)
-        .map(([productId, quantity]) => ({
-          product_id: productId,
-          quantity: parseInt(quantity.toString()),
-        }));
-
-      if (stockAssignments.length === 0) {
-        toast.error('Please specify quantities for at least one product.');
-        return;
-      }
-
-      // Process each assignment
-      for (const assignment of stockAssignments) {
-        console.log('Processing assignment:', assignment); // Debug log
-
-        // First, verify the product
-        const { data: productData, error: productError } = await supabase
-          .from('products')
-          .select('name, quantity')
-          .eq('id', assignment.product_id)
-          .single();
-
-        if (productError) {
-          console.error('Product check error:', productError);
-          throw new Error(`Failed to check product: ${productError.message}`);
+      const { error } = await supabase.from('warehouse_inventory').insert([
+        {
+          warehouse_id: selectedWarehouse,
+          quantity,
+          status: 'assigned',
+          assigned_at: new Date().toISOString()
         }
-
-        // Create the movement record directly first for debugging
-        const { data: movementData, error: movementError } = await supabase
-          .from('inventory_movements')
-          .insert([{
-            warehouse_id: selectedWarehouse,
-            product_id: assignment.product_id,
-            quantity: assignment.quantity,
-            movement_type: 'in',
-            reference_number: `ASN-${Date.now()}`,
-            notes: `Stock assignment of ${assignment.quantity} units`,
-            performed_by: userData.email,
-            client_id: userData.id,
-            timestamp: new Date().toISOString()
-          }])
-          .select();
-
-        console.log('Created movement:', movementData, 'Error:', movementError); // Debug log
-
-        if (movementError) {
-          console.error('Movement creation error:', movementError);
-          throw new Error(`Failed to create movement: ${movementError.message}`);
-        }
-
-        // Then call the stored procedure
-        const { error: assignError } = await supabase.rpc('assign_warehouse_stock', {
-          p_warehouse_id: selectedWarehouse,
-          p_product_id: assignment.product_id,
-          p_quantity: assignment.quantity,
-          p_client_id: userData.id,
-          p_reference_number: `ASN-${Date.now()}`,
-          p_notes: `Stock assignment of ${assignment.quantity} units`,
-          p_performed_by: userData.email
-        });
-
-        if (assignError) {
-          console.error('Assignment error:', assignError);
-          throw new Error(`Failed to assign stock: ${assignError.message}`);
-        }
-      }
-
-      // Refresh data immediately after assignments
-      await fetchMovements();
-      await Promise.all([
-        fetchProducts(userData.id),
-        fetchWarehouses(userData.id),
-        fetchInventory()
       ]);
 
-      setQuantities({});
-      setSelectedWarehouse('');
+      if (error) throw error;
+
       setShowAssignDialog(false);
-      toast.success('Stocks assigned successfully!');
+      toast.success('Stock assigned successfully!');
+      await fetchInventory();
     } catch (error) {
-      console.error('Error assigning stocks:', error);
-      toast.error(error.message || 'Failed to assign stocks. Please try again.');
+      if (error instanceof Error) {
+        console.error('Error assigning stock:', error.message);
+        toast.error(error.message);
+      } else {
+        console.error('Unknown error assigning stock:', error);
+        toast.error('Failed to assign stock');
+      }
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const fetchInventory = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('warehouse_inventory')
-        .select(`
-          *,
-          warehouses (name),
-          products (name, sku)
-        `);
-
-      if (error) throw error;
-      setWarehouseInventory(data || []);
-    } catch (error) {
-      console.error('Error fetching inventory:', error);
-      toast.error('Failed to fetch inventory');
-    }
-  };
-
-  const fetchMovements = async () => {
-    try {
-      const currentUser = localStorage.getItem('currentUser');
-      if (!currentUser) {
-        toast.error('Please sign in to view stock movements');
-        return;
-      }
-
-      const userData = JSON.parse(currentUser);
-      
-      const { data, error } = await supabase
-        .from('inventory_movements')
-        .select(`
-          *,
-          warehouses:warehouse_id (
-            name
-          ),
-          products:product_id (
-            name,
-            sku
-          )
-        `)
-        .eq('client_id', userData.id)
-        .order('timestamp', { ascending: false });
-
-      if (error) {
-        console.error('Error fetching movements:', error);
-        throw error;
-      }
-
-      console.log('Fetched movements:', data);
-      setStockMovements(data || []);
-    } catch (error) {
-      console.error('Error fetching movements:', error);
-      toast.error('Failed to fetch movement history');
-    }
-  };
-
-  const fetchProducts = async (clientId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('products')
-        .select(`
-          id,
-          name,
-          quantity,
-          sku,
-          category,
-          condition,
-          price,
-          status
-        `)
-        .eq('client_id', clientId)
-        .order('name');
-      
-      if (error) throw error;
-      setProducts(data || []);
-    } catch (error) {
-      console.error('Error fetching products:', error);
-      toast.error('Failed to fetch products');
     }
   };
 
@@ -537,10 +472,7 @@ export default function WarehousesPage() {
 
   // Add location validation function
   const validateAndSuggestLocations = async (location: string) => {
-    if (!location || location.length < 3) {
-      setLocationSuggestions([]);
-      return;
-    }
+    if (!location.trim()) return;
 
     try {
       setIsValidatingLocation(true);
@@ -548,10 +480,15 @@ export default function WarehousesPage() {
         `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(location)}&limit=5`
       );
       const data = await response.json();
-      setLocationSuggestions(data || []);
+      setLocationSuggestions(data);
     } catch (error) {
-      console.error('Error fetching location suggestions:', error);
-      toast.error('Failed to fetch location suggestions');
+      if (error instanceof Error) {
+        console.error('Error validating location:', error.message);
+        toast.error(error.message);
+      } else {
+        console.error('Unknown error validating location:', error);
+        toast.error('Failed to validate location');
+      }
     } finally {
       setIsValidatingLocation(false);
     }
@@ -941,8 +878,8 @@ export default function WarehousesPage() {
                         >
                           <span className="relative overflow-hidden">
                             <span className="absolute top-0 -inset-full h-full w-1/2 z-5 block transform -skew-x-12 bg-gradient-to-r from-transparent to-white opacity-20 animate-shimmer" />
-                            Assign to Warehouse
                           </span>
+                          Assign to Warehouse
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -1122,7 +1059,7 @@ export default function WarehousesPage() {
               <Button 
                   type="button"
                   disabled={!selectedWarehouse || Object.values(quantities).filter(q => q > 0).length === 0 || isLoading}
-                onClick={handleAssignStock}
+                onClick={() => handleAssignStock(Object.values(quantities).filter(q => q > 0)[0])}
                   className="bg-gradient-to-r from-[#3456FF] to-[#8763FF] hover:opacity-90 font-sans font-medium transition-all"
                 >
                   <div className="absolute inset-0 overflow-hidden rounded-md">

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { supabase } from './SupabaseClient';
+import { supabase } from '@/lib/auth/SupabaseClient';
 
 export function StockContent() {
   const [activeSection, setActiveSection] = useState<'inventory' | 'skus' | 'bins' | 'pallets' | 'quarantine'>('inventory');
@@ -48,16 +48,16 @@ export function StockContent() {
           quarantine (reason, quantity, location)
         `);
 
-      const uniqueCategories = [...new Set(inventoryData?.map((item: any) => item.category))];
-      const uniqueLocations = [...new Set(inventoryData?.flatMap((item: any) => [
+      const uniqueCategories = Array.from(new Set(inventoryData?.map((item: any) => item.category) || []));
+      const uniqueLocations = Array.from(new Set(inventoryData?.flatMap((item: any) => [
         ...item.bins?.map((bin: any) => bin.location) || [],
         ...item.quarantine?.map((q: any) => q.location) || [],
-      ]))];
+      ]) || []));
 
       setInventory(inventoryData || []);
       setFilteredInventory(inventoryData || []);
-      setCategories(uniqueCategories || []);
-      setLocations(uniqueLocations || []);
+      setCategories(uniqueCategories);
+      setLocations(uniqueLocations);
     };
 
     fetchData();

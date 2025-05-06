@@ -13,13 +13,21 @@ import {
 import { Label } from "@/components/ui/label";
 import { toast } from "react-hot-toast";
 
+interface Warehouse {
+  name: string;
+  location: string;
+  capacity: number;
+  manager: string;
+  coordinates: [number, number];
+}
+
 interface WarehouseFormProps {
   warehouse?: Warehouse | null;
   onSubmit: (data: any) => void;
   isLoading: boolean;
 }
 
-export default function WarehouseForm({ warehouse, onSubmit, isLoading }: WarehouseFormProps) {
+export function WarehouseForm({ warehouse, onSubmit, isLoading }: WarehouseFormProps) {
   const [formData, setFormData] = useState({
     name: warehouse?.name || '',
     location: warehouse?.location || '',
