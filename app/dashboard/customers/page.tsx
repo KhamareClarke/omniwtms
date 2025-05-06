@@ -26,10 +26,10 @@ export default function CustomersPage() {
     const userStr = localStorage.getItem('currentUser');
     if (userStr) {
       try {
-        const user = JSON.parse(userStr);
+      const user = JSON.parse(userStr);
         console.log("Current user:", user);
-        setCurrentClientId(user.id);
-        fetchCustomers(user.id);
+      setCurrentClientId(user.id);
+      fetchCustomers(user.id);
       } catch (error) {
         console.error("Error parsing user from localStorage:", error);
         toast.error("Error loading user data. Please login again.");
@@ -44,11 +44,11 @@ export default function CustomersPage() {
   const fetchCustomers = async (clientId: string) => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('customers')
-        .select('*')
-        .eq('client_id', clientId)
-        .order('created_at', { ascending: false });
+    const { data, error } = await supabase
+      .from('customers')
+      .select('*')
+      .eq('client_id', clientId)
+      .order('created_at', { ascending: false });
       
       if (error) {
         console.error("Error fetching customers:", error);
@@ -78,38 +78,38 @@ export default function CustomersPage() {
     setLoading(true);
 
     try {
-      if (!form.name || !form.contact || !form.password) {
+    if (!form.name || !form.contact || !form.password) {
         toast.error('Name, Contact, and Password are required');
-        return;
-      }
+      return;
+    }
       
-      if (!currentClientId) {
+    if (!currentClientId) {
         toast.error('No client ID found. Please login again.');
-        return;
-      }
+      return;
+    }
 
       console.log("Adding customer to database...");
       const { data, error } = await supabase
-        .from('customers')
-        .insert([{ 
-          name: form.name, 
-          contact_number: form.contact, 
-          password: form.password,
+      .from('customers')
+      .insert([{ 
+        name: form.name, 
+        contact_number: form.contact, 
+        password: form.password,
           email: form.email || null,
           client_id: currentClientId,
           created_at: new Date().toISOString()
         }])
         .select();
 
-      if (error) {
+    if (error) {
         console.error("Error adding customer:", error);
         toast.error('Failed to add customer: ' + error.message);
-      } else {
+    } else {
         console.log("Customer added:", data);
         toast.success('Customer added successfully!');
-        setForm({ name: '', contact: '', password: '', email: '' });
-        fetchCustomers(currentClientId);
-      }
+      setForm({ name: '', contact: '', password: '', email: '' });
+      fetchCustomers(currentClientId);
+    }
     } catch (error) {
       console.error("Exception adding customer:", error);
       toast.error('An unexpected error occurred');
@@ -161,7 +161,7 @@ export default function CustomersPage() {
           <div className="glass-card border border-gray-200 shadow-sm rounded-xl p-4 relative overflow-hidden">
             <div className="absolute -z-10 inset-0 bg-gradient-to-br from-[#3456FF]/5 via-transparent to-[#8763FF]/5 rounded-lg opacity-50"></div>
             <div className="flex justify-between items-start">
-              <div>
+    <div>
                 <p className="text-sm text-gray-500 font-sans">Recent Customers</p>
                 <p className="text-2xl font-semibold font-heading">{customers.slice(0, 5).length}</p>
               </div>
@@ -206,47 +206,47 @@ export default function CustomersPage() {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="name" className="font-sans text-gray-700">Customer Name *</Label>
-                  <Input
+        <Input
                     id="name"
-                    name="name"
+          name="name"
                     placeholder="Enter customer name"
-                    value={form.name}
-                    onChange={handleChange}
-                  />
+          value={form.name}
+          onChange={handleChange}
+        />
                 </div>
                 
                 <div className="space-y-2">
                   <Label htmlFor="contact" className="font-sans text-gray-700">Contact Number *</Label>
-                  <Input
+        <Input
                     id="contact"
-                    name="contact"
+          name="contact"
                     placeholder="Enter contact number"
-                    value={form.contact}
-                    onChange={handleChange}
-                  />
+          value={form.contact}
+          onChange={handleChange}
+        />
                 </div>
                 
                 <div className="space-y-2">
                   <Label htmlFor="email" className="font-sans text-gray-700">Email</Label>
-                  <Input
+        <Input
                     id="email"
-                    name="email"
+          name="email"
                     placeholder="Enter email address"
-                    value={form.email}
-                    onChange={handleChange}
-                  />
+          value={form.email}
+          onChange={handleChange}
+        />
                 </div>
                 
                 <div className="space-y-2">
                   <Label htmlFor="password" className="font-sans text-gray-700">Password *</Label>
-                  <Input
+        <Input
                     id="password"
-                    name="password"
-                    type="password"
+          name="password"
+          type="password"
                     placeholder="Enter password"
-                    value={form.password}
-                    onChange={handleChange}
-                  />
+          value={form.password}
+          onChange={handleChange}
+        />
                 </div>
                 
                 <Button 
@@ -254,9 +254,9 @@ export default function CustomersPage() {
                   disabled={loading}
                   className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                 >
-                  {loading ? 'Saving...' : 'Add Customer'}
-                </Button>
-              </form>
+          {loading ? 'Saving...' : 'Add Customer'}
+        </Button>
+      </form>
             </CardContent>
           </Card>
 
@@ -273,7 +273,7 @@ export default function CustomersPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="overflow-x-auto">
+      <div className="overflow-x-auto">
                 <Table>
                   <TableHeader className="bg-gray-50/80 backdrop-blur-sm">
                     <TableRow>
@@ -311,7 +311,7 @@ export default function CustomersPage() {
                           </div>
                         </TableCell>
                       </TableRow>
-                    ) : (
+            ) : (
                       filteredCustomers.map((c) => (
                         <TableRow key={c.id} className="hover:bg-gray-50/70 backdrop-blur-sm transition-colors">
                           <TableCell className="font-medium font-sans">{c.name}</TableCell>
@@ -324,8 +324,8 @@ export default function CustomersPage() {
                             {c.created_at ? new Date(c.created_at).toLocaleString() : '-'}
                           </TableCell>
                         </TableRow>
-                      ))
-                    )}
+              ))
+            )}
                   </TableBody>
                 </Table>
               </div>

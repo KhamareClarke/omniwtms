@@ -4,13 +4,13 @@ import { supabase } from '@/lib/supabase';
 // GET Method
 export async function GET() {
     try {
-        const { data, error } = await supabase.from('skus').select('*');
+    const { data, error } = await supabase.from('skus').select('*');
         if (error) throw error;
         return NextResponse.json(data);
     } catch (error) {
         if (error instanceof Error) {
             console.error('GET Exception:', error.message);
-            return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: error.message }, { status: 500 });
         }
         return NextResponse.json({ error: 'An unknown error occurred' }, { status: 500 });
     }

@@ -307,12 +307,12 @@ export default function WarehousesPage() {
       const { data: warehouseData, error } = await supabase.from('warehouses').insert([
         {
           client_id: userData.id,
-          name: data.name,
+        name: data.name,
           location: data.location,
           capacity: data.capacity,
-          manager: data.manager,
+        manager: data.manager,
           coordinates: data.coordinates,
-          status: 'active',
+        status: 'active',
           created_at: new Date().toISOString()
         }
       ]).select().single();
@@ -354,7 +354,7 @@ export default function WarehousesPage() {
 
       const { error } = await supabase
         .from('warehouses')
-        .update({
+        .update({ 
           name: data.name,
           location: data.location,
           capacity: data.capacity,
@@ -366,7 +366,7 @@ export default function WarehousesPage() {
 
       if (error) throw error;
 
-      setWarehouses(prev =>
+      setWarehouses(prev => 
         prev.map(w => (w.id === editingWarehouse.id ? { ...w, ...data } : w))
       );
       setEditingWarehouse(null);
@@ -421,7 +421,7 @@ export default function WarehousesPage() {
       setIsLoading(true);
       const { error } = await supabase.from('warehouse_inventory').insert([
         {
-          warehouse_id: selectedWarehouse,
+            warehouse_id: selectedWarehouse,
           quantity,
           status: 'assigned',
           assigned_at: new Date().toISOString()
