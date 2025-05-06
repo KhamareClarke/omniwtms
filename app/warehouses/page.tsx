@@ -8,11 +8,11 @@ import { WarehouseOperations } from '@/components/warehouses/warehouse-operation
 export default function WarehousesPage() {
   return (
     <div className="space-y-8">
-    <Suspense fallback={<LoadingSpinner />}>
-      <WarehousesContent />
-    </Suspense>
       <Suspense fallback={<LoadingSpinner />}>
-        <WarehouseOperations warehouseId={null} />
+        <WarehousesContent />
+      </Suspense>
+      <Suspense fallback={<LoadingSpinner />}>
+        <WarehouseOperations />
       </Suspense>
     </div>
   );

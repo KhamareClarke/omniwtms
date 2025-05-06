@@ -49,6 +49,10 @@ interface PutawayAssignment { id: string; truck_item_id: string; aisle: string; 
 
 interface QualityCheck { id: string; truck_item_id: string; status: string; damage_image_url?: string; supervisor_name?: string; barcode?: string; }
 
+interface WarehouseOperationsProps {
+  warehouseId?: string | null;
+}
+
 const steps = [
   'Truck Arrival',
   'Unloading',
@@ -63,7 +67,7 @@ if (typeof window !== 'undefined' && pdfjsLib.GlobalWorkerOptions) {
 
 const WarehouseLabel = dynamic(() => import('./WarehouseLabel'), { ssr: false });
 
-export function WarehouseOperations() {
+export function WarehouseOperations({ warehouseId }: WarehouseOperationsProps) {
   // Stepper state
   const [currentStep, setCurrentStep] = useState(0);
 
