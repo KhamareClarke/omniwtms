@@ -1,9 +1,21 @@
 'use client';
 
 import { Suspense } from 'react';
-import { WarehousesContent } from '@/components/warehouses/warehouses-content';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { WarehouseOperations } from '@/components/warehouses/warehouse-operations';
+import dynamic from 'next/dynamic';
+
+const WarehousesContent = dynamic(
+  () => import('@/components/warehouses/warehouses-content').then((mod) => mod.WarehousesContent), 
+  { 
+    ssr: false 
+  }
+);
+const WarehouseOperations = dynamic(
+  () => import('@/components/warehouses/warehouse-operations').then((mod) => mod.WarehouseOperations), 
+  { 
+    ssr: false 
+  }
+);
 
 export default function WarehousesPage() {
   return (

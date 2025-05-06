@@ -1,10 +1,17 @@
 'use client';
 
 import { Suspense } from 'react';
-import { WarehouseOperations } from '@/components/warehouses/warehouse-operations';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { AnimatedGradientBackground } from '@/components/ui/animated-gradient-background';
 import { AIParticleEffect } from '@/components/ui/ai-particle-effect';
+import dynamic from 'next/dynamic';
+
+const WarehouseOperations = dynamic(
+  () => import('@/components/warehouses/warehouse-operations').then((mod) => mod.WarehouseOperations), 
+  { 
+    ssr: false 
+  }
+);
 
 export default function WarehouseOperationsPage() {
   return (
