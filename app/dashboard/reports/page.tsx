@@ -56,10 +56,32 @@ interface ReportStats {
   }[];
 }
 
+interface Delivery {
+  created_at: string;
+  courier_name: string;
+  status: string;
+}
+
+interface InventoryMovement {
+  timestamp: string;
+  movement_type: string;
+  quantity: number;
+}
+
 interface Warehouse {
-  name?: string;
-  products?: number;
-  capacity?: number;
+  name: string;
+  products: number;
+  capacity: number;
+  inventory_movements?: InventoryMovement[];
+}
+
+interface WarehouseUtilization {
+  total: number;
+  totalStocks: number;
+  utilization: {
+    name: string;
+    utilization: number;
+  }[];
 }
 
 export default function ReportsPage() {
@@ -252,11 +274,11 @@ export default function ReportsPage() {
       };
 
       const warehouseStats = {
-        total: warehouses.length,
-        totalStocks: warehouses.reduce((sum: number, w: Warehouse) => sum + (w.products || 0), 0),
-        utilization: warehouses.map((w: Warehouse) => ({
-          name: w.name || '',
-          utilization: ((w.products || 0) / (w.capacity || 100)) * 100
+        total: warehouses.reduce((acc, w) => acc + (w.products || 0), 0),
+        totalStocks: warehouses.reduce((acc, w) => acc + (w.capacity || 0), 0),
+        utilization: warehouses.map(w => ({
+          name: w.name,
+          utilization: (w.products / w.capacity) * 100
         }))
       };
 
@@ -270,36 +292,26 @@ export default function ReportsPage() {
       };
 
       // Generate timeline with enhanced activities
-      const timeline = [
-        ...products.map(p => ({
-          date: p.created_at,
-          activity: 'Product Added',
-          details: `Product: ${p.name}, Quantity: ${p.quantity || 0}`,
+      const transformedData = [
+        ...deliveries.map((d: Delivery) => ({
+          date: d.created_at,
+          activity: 'Delivery',
+          details: `Courier: ${d.courier_name}, Status: ${d.status}`,
           status: 'success'
         })),
-        ...warehouses.flatMap(w => (w.inventory_movements || []).map(m => ({
+        ...warehouses.flatMap((w: Warehouse) => (w.inventory_movements || []).map((m: InventoryMovement) => ({
           date: m.timestamp,
           activity: 'Warehouse Movement',
           details: `Warehouse: ${w.name}, Type: ${m.movement_type}, Quantity: ${m.quantity}`,
-          status: m.movement_type
-        }))),
-        ...deliveries.map(d => ({
-          date: d.created_at,
-          activity: 'Delivery',
-          details: `From: ${d.pickup_address?.split(',')[0]} To: ${d.delivery_address?.split(',')[0]}`,
-          status: d.status
-        }))
+          status: 'success'
+        })))
       ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
       setStats({
         products: productsStats,
-        warehouse: {
-          ...warehouseStats,
-          assigned: warehouses.filter(w => w.status === 'assigned').length,
-          pending: warehouses.filter(w => w.status === 'pending').length
-        },
+        warehouse: warehouseStats,
         deliveries: deliveriesStats,
-        timeline
+        timeline: transformedData
       });
 
     } catch (error) {

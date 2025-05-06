@@ -50,7 +50,7 @@ interface Warehouse {
   client_id: string;
   name: string;
   location: string;
-  coordinates: number[];
+  coordinates: [number, number];
   capacity: number;
   utilization: number;
   revenue: number;
@@ -127,6 +127,8 @@ interface WarehouseFormProps {
   isValidatingLocation: boolean;
 }
 
+type Quantities = Record<string, number>;
+
 // Enhanced formatting functions
 const formatNumber = (num: number) => {
   return num.toLocaleString();
@@ -147,7 +149,8 @@ export default function WarehousesPage() {
   const [editingWarehouse, setEditingWarehouse] = useState<Warehouse | null>(null);
   const [deletingWarehouseId, setDeletingWarehouseId] = useState<string | null>(null);
   const [selectedWarehouse, setSelectedWarehouse] = useState('');
-  const [quantities, setQuantities] = useState({});
+  const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
+  const [selectedQuantity, setSelectedQuantity] = useState<number>(1);
   const [warehouseInventory, setWarehouseInventory] = useState<WarehouseInventory[]>([]);
   const [stockMovements, setStockMovements] = useState<InventoryMovement[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
@@ -369,21 +372,6 @@ export default function WarehousesPage() {
       setEditingWarehouse(null);
       toast.success('Warehouse updated successfully!');
     } catch (error) {
-      if (error instanceof Error) {
-        console.error('Error updating warehouse:', error.message);
-        toast.error(error.message);
-      } else {
-      setWarehouses(prev => 
-        prev.map(w => w.id === editingWarehouse.id ? {
-          ...w,
-          ...data,
-          location: location.display_name,
-          coordinates: coordinates
-        } : w)
-      );
-      setEditingWarehouse(null);
-      toast.success('Warehouse updated successfully');
-    } catch (error) {
       console.error('Error updating warehouse:', error);
       toast.error('Failed to update warehouse');
     } finally {
@@ -455,6 +443,12 @@ export default function WarehousesPage() {
       }
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleQuantityChange = (value: number) => {
+    if (value >= 1) {
+      setSelectedQuantity(value);
     }
   };
 
@@ -871,7 +865,8 @@ export default function WarehousesPage() {
                           variant="outline"
                           onClick={() => {
                             setSelectedWarehouse('');
-                            setQuantities({ ...quantities, [product.id]: 1 });
+                            setSelectedProduct(product.id);
+                            setSelectedQuantity(1);
                             setShowAssignDialog(true);
                           }}
                           className="h-8 text-xs border-[#3456FF]/30 text-[#3456FF] hover:bg-[#3456FF]/5 font-sans transition-all hover:scale-105 active:scale-95"
@@ -997,7 +992,7 @@ export default function WarehousesPage() {
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700 font-sans">Product Quantities</label>
                 <div className="space-y-3 max-h-80 overflow-y-auto p-3 rounded-lg bg-gray-50/80 backdrop-blur-sm border border-gray-200 custom-scrollbar">
-                  {products.filter(p => quantities[p.id]).length === 0 ? (
+                  {products.filter(p => selectedProduct === p.id).length === 0 ? (
                     <div className="text-center flex flex-col items-center text-gray-500 py-5 font-sans space-y-3">
                       <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center relative">
                         <div className="absolute inset-0 bg-gradient-to-br from-[#3456FF]/10 to-[#8763FF]/10 animate-pulse-slow rounded-full"></div>
@@ -1009,7 +1004,7 @@ export default function WarehousesPage() {
                     </div>
                   ) : (
                     products
-                      .filter(product => quantities[product.id])
+                      .filter(product => selectedProduct === product.id)
                       .map((product) => (
                         <div key={product.id} className="flex items-center justify-between gap-3 p-3 rounded-md border border-gray-200 bg-white hover:border-[#3456FF]/30 hover:shadow-sm transition-all">
                           <div className="flex-1">
@@ -1022,21 +1017,15 @@ export default function WarehousesPage() {
                     type="number"
                               min="1"
                               max={product.quantity}
-                              value={quantities[product.id] || 0}
+                              value={selectedQuantity}
                     onChange={(e) => {
                                 const val = parseInt(e.target.value);
                                 if (isNaN(val) || val < 1) {
-                                  setQuantities({
-                                    ...quantities,
-                                    [product.id]: undefined
-                                  });
+                                  setSelectedQuantity(1);
                                   return;
                                 }
                                 
-                                setQuantities({
-                                  ...quantities,
-                                  [product.id]: Math.min(val, product.quantity)
-                                });
+                                setSelectedQuantity(Math.min(val, product.quantity));
                     }}
                               className="w-full border-gray-300 focus:border-[#3456FF] focus:ring focus:ring-[#3456FF]/10 font-sans transition-all"
                   />
@@ -1058,8 +1047,8 @@ export default function WarehousesPage() {
               </Button>
               <Button 
                   type="button"
-                  disabled={!selectedWarehouse || Object.values(quantities).filter(q => q > 0).length === 0 || isLoading}
-                onClick={() => handleAssignStock(Object.values(quantities).filter(q => q > 0)[0])}
+                  disabled={!selectedWarehouse || selectedQuantity === 0 || isLoading}
+                onClick={() => handleAssignStock(selectedQuantity)}
                   className="bg-gradient-to-r from-[#3456FF] to-[#8763FF] hover:opacity-90 font-sans font-medium transition-all"
                 >
                   <div className="absolute inset-0 overflow-hidden rounded-md">

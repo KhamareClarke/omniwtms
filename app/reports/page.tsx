@@ -20,6 +20,7 @@ import { DatePickerWithRange } from "@/components/ui/date-range-picker";
 import { Button } from "@/components/ui/button";
 import { Download } from 'lucide-react';
 import { format } from 'date-fns';
+import { DateRange } from 'react-day-picker';
 
 interface ReportStats {
   products: {
@@ -49,7 +50,8 @@ interface ReportStats {
 }
 
 export default function ReportsPage() {
-  const [dateRange, setDateRange] = useState<{ from: Date; to: Date } | undefined>();
+  const [selectedReport, setSelectedReport] = useState<string>('');
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [reportType, setReportType] = useState('all');
   const [stats, setStats] = useState<ReportStats>({
     products: { total: 0, addedToday: 0, addedThisWeek: 0, addedThisMonth: 0 },
@@ -181,7 +183,10 @@ export default function ReportsPage() {
             <SelectItem value="deliveries">Deliveries</SelectItem>
           </SelectContent>
         </Select>
-        <DatePickerWithRange date={dateRange} setDate={setDateRange} />
+        <DatePickerWithRange 
+          date={dateRange} 
+          setDate={setDateRange} 
+        />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

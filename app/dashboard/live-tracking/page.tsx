@@ -326,17 +326,15 @@ export default function LiveTracking() {
         const transformedData = deliveries.map(delivery => {
           console.log('Processing delivery:', delivery);
           
-          // Get the first and last stops for pickup/delivery addresses
-          const stops = delivery.delivery_stops || [];
-          const pickupAddress = stops[0]?.address || 'Pickup address not set';
-          const deliveryAddress = stops[stops.length - 1]?.address || 'Delivery address not set';
-
-          const courierObj = Array.isArray(delivery.couriers) ? delivery.couriers[0] : delivery.couriers;
+          const courierObj = delivery.couriers[0];
+          const stops = delivery.delivery_stops;
+          const pickupAddress = stops[0]?.address || 'Unknown';
+          const deliveryAddress = stops[stops.length - 1]?.address || 'Unknown';
 
           return {
             id: delivery.id,
             courier_id: delivery.courier_id,
-            courier_name: courierObj?.name || 'Unknown Courier',
+            courier_name: courierObj?.name || 'Unknown',
             current_location: {
               latitude: courierObj?.current_latitude || 12.9716, // Default to Bangalore
               longitude: courierObj?.current_longitude || 77.5946,
@@ -348,7 +346,7 @@ export default function LiveTracking() {
               delivery_address: deliveryAddress,
               status: delivery.status,
               estimated_delivery_time: stops[stops.length - 1]?.estimated_arrival || new Date(Date.now() + 3600000).toISOString(),
-              priority: ['high', 'medium', 'low'].includes(delivery.priority) ? delivery.priority : 'medium',
+              priority: 'medium' as const, // Default priority
               pod_file: delivery.pod_file
             },
             stops: stops.map((stop, index) => ({

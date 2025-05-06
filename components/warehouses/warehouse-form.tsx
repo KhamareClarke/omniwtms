@@ -21,19 +21,44 @@ interface Warehouse {
   coordinates: [number, number];
 }
 
-interface WarehouseFormProps {
-  warehouse?: Warehouse | null;
-  onSubmit: (data: any) => void;
-  isLoading: boolean;
+interface WarehouseFormData {
+  name: string;
+  location: string;
+  capacity: number;
+  manager: string;
+  coordinates: [number, number];
 }
 
-export function WarehouseForm({ warehouse, onSubmit, isLoading }: WarehouseFormProps) {
-  const [formData, setFormData] = useState({
-    name: warehouse?.name || '',
-    location: warehouse?.location || '',
-    capacity: warehouse?.capacity || 10000,
-    manager: warehouse?.manager || '',
-    coordinates: warehouse?.coordinates || [51.5074, -0.1278]
+interface LocationSuggestion {
+  display_name: string;
+  lat: number;
+  lon: number;
+}
+
+interface WarehouseFormProps {
+  onSubmit: (data: WarehouseFormData) => Promise<void>;
+  initialData: Warehouse | null;
+  isLoading: boolean;
+  locationSuggestions: LocationSuggestion[];
+  onLocationChange: (location: string) => Promise<void>;
+  isValidatingLocation: boolean;
+}
+
+export function WarehouseForm({ 
+  onSubmit, 
+  initialData, 
+  isLoading,
+  locationSuggestions,
+  onLocationChange,
+  isValidatingLocation 
+}: WarehouseFormProps) {
+  const defaultCoordinates: [number, number] = [51.5074, -0.1278];
+  const [formData, setFormData] = useState<WarehouseFormData>({
+    name: initialData?.name || '',
+    location: initialData?.location || '',
+    capacity: initialData?.capacity || 0,
+    manager: initialData?.manager || '',
+    coordinates: Array.isArray(initialData?.coordinates) ? initialData.coordinates as [number, number] : defaultCoordinates
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -102,7 +127,7 @@ export function WarehouseForm({ warehouse, onSubmit, isLoading }: WarehouseFormP
         />
       </div>
       <Button type="submit" className="w-full" disabled={isLoading}>
-        {isLoading ? 'Saving...' : warehouse ? 'Save Changes' : 'Add Warehouse'}
+        {isLoading ? 'Saving...' : initialData ? 'Save Changes' : 'Add Warehouse'}
       </Button>
     </form>
   );
