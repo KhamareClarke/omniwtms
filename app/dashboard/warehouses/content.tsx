@@ -109,7 +109,6 @@ interface WarehouseFormData {
   location: string;
   capacity: number;
   manager: string;
-  coordinates: [number, number];
 }
 
 interface WarehouseFormProps {
@@ -128,15 +127,7 @@ const formatNumber = (num: number) => {
   return num.toLocaleString();
 };
 
-const getUtilizationColor = (utilization: number) => {
-  if (utilization > 90) return 'bg-gradient-to-r from-red-500 to-red-600';
-  if (utilization > 75) return 'bg-gradient-to-r from-orange-500 to-orange-600';
-  return 'bg-gradient-to-r from-green-500 to-green-600';
-};
-
-
-
-export default function WarehousesPageContent() {
+export default function WarehousesPage() {
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
   const [search, setSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -158,37 +149,39 @@ export default function WarehousesPageContent() {
   useEffect(() => {
     checkAuthAndFetchData();
   }, []);
-const handleDeleteWarehouse = async () => {
-  if (!deletingWarehouseId) return;
 
-  const currentUser = localStorage.getItem('currentUser');
-  if (!currentUser) {
-    toast.error('Please sign in to delete warehouses');
-    return;
-  }
+  const handleDeleteWarehouse = async () => {
+    if (!deletingWarehouseId) return;
 
-  try {
-    setIsLoading(true);
-    const userData = JSON.parse(currentUser);
-    
-    const { error } = await supabase
-      .from('warehouses')
-      .delete()
-      .eq('id', deletingWarehouseId)
-      .eq('client_id', userData.id);
+    const currentUser = localStorage.getItem('currentUser');
+    if (!currentUser) {
+      toast.error('Please sign in to delete warehouses');
+      return;
+    }
 
-    if (error) throw error;
-    
-    setWarehouses(prev => prev.filter(w => w.id !== deletingWarehouseId));
-    setDeletingWarehouseId(null);
-    toast.success('Warehouse deleted successfully');
-  } catch (error) {
-    console.error('Error deleting warehouse:', error);
-    toast.error('Failed to delete warehouse');
-  } finally {
-    setIsLoading(false);
-  }
-};
+    try {
+      setIsLoading(true);
+      const userData = JSON.parse(currentUser);
+      
+      const { error } = await supabase
+        .from('warehouses')
+        .delete()
+        .eq('id', deletingWarehouseId)
+        .eq('client_id', userData.id);
+
+      if (error) throw error;
+      
+      setWarehouses(prev => prev.filter(w => w.id !== deletingWarehouseId));
+      setDeletingWarehouseId(null);
+      toast.success('Warehouse deleted successfully');
+    } catch (error) {
+      console.error('Error deleting warehouse:', error);
+      toast.error('Failed to delete warehouse');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const fetchProducts = async (clientId: string) => {
     try {
       const { data, error } = await supabase
@@ -550,6 +543,74 @@ const handleDeleteWarehouse = async () => {
     }
   };
 
+  const handleEditWarehouse = async (data: WarehouseFormData) => {
+    if (!editingWarehouse) return;
+    
+    try {
+      setIsLoading(true);
+      const currentUser = localStorage.getItem('currentUser');
+      if (!currentUser) {
+        toast.error('Please sign in to edit a warehouse');
+        return;
+      }
+      const userData = JSON.parse(currentUser);
+
+      // Geocode the address if it was changed
+      let coordinates = editingWarehouse.coordinates;
+      if (data.location !== editingWarehouse.location) {
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(data.location)}&limit=1`
+        );
+        const locationData = await response.json();
+        if (!locationData || locationData.length === 0) {
+          toast.error('Invalid address. Please enter a valid, full warehouse address.');
+          return;
+        }
+        coordinates = [parseFloat(locationData[0].lat), parseFloat(locationData[0].lon)];
+      }
+
+      const { error } = await supabase
+        .from('warehouses')
+        .update({
+          name: data.name,
+          location: data.location,
+          capacity: data.capacity,
+          manager: data.manager,
+          coordinates: coordinates,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', editingWarehouse.id)
+        .eq('client_id', userData.id);
+
+      if (error) throw error;
+      
+      // Update the warehouse in the local state
+      setWarehouses(prev => 
+        prev.map(w => 
+          w.id === editingWarehouse.id 
+            ? { 
+                ...w, 
+                name: data.name, 
+                location: data.location, 
+                capacity: data.capacity, 
+                manager: data.manager,
+                coordinates: coordinates,
+                updated_at: new Date().toISOString()
+              } 
+            : w
+        )
+      );
+      
+      setEditingWarehouse(null);
+      toast.success('Warehouse updated successfully!');
+    } catch (error) {
+      console.error('Error updating warehouse:', error);
+      toast.error('Failed to update warehouse');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const validLocations = warehouses
     .filter(w => Array.isArray(w.coordinates) && w.coordinates.length === 2 && w.coordinates.every(coord => typeof coord === 'number'))
     .map(w => ({
@@ -626,7 +687,6 @@ const handleDeleteWarehouse = async () => {
                   <TableHead className="font-semibold text-gray-700 font-heading">Location</TableHead>
                   <TableHead className="font-semibold text-gray-700 font-heading">Manager</TableHead>
                   <TableHead className="font-semibold text-gray-700 font-heading">Capacity</TableHead>
-                  <TableHead className="font-semibold text-gray-700 font-heading">Utilization</TableHead>
                   <TableHead className="font-semibold text-gray-700 font-heading">Status</TableHead>
                   <TableHead className="font-semibold text-gray-700 font-heading text-right">Actions</TableHead>
               </TableRow>
@@ -658,24 +718,7 @@ const handleDeleteWarehouse = async () => {
                       <TableCell className="font-sans whitespace-nowrap">
                         <span className="font-mono text-sm">{formatNumber(warehouse.capacity)}</span> units
                       </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                          <div className="w-full max-w-[100px] bg-gray-200 rounded-full h-2.5 overflow-hidden">
-                        <div
-                              className={`h-2.5 rounded-full ${getUtilizationColor(warehouse.utilization)}`}
-                              style={{ width: `${Math.min(100, warehouse.utilization)}%` }}
-                            ></div>
-                      </div>
-                          <span className={`text-sm font-medium ${
-                            warehouse.utilization > 90 ? 'text-red-500' : 
-                            warehouse.utilization > 75 ? 'text-orange-500' : 
-                            'text-green-500'
-                          }`}>
-                            {warehouse.utilization}%
-                          </span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
+                      <TableCell>
                         <Badge
                           variant="outline"
                           className={
@@ -987,7 +1030,6 @@ const handleDeleteWarehouse = async () => {
                 Add New Warehouse
               </DialogTitle>
             </DialogHeader>
-            {/* @ts-expect-error kjnj */}
             <WarehouseForm onSubmit={handleAddWarehouse} isLoading={isLoading} />
           </DialogContent>
         </Dialog>
@@ -1004,6 +1046,18 @@ const handleDeleteWarehouse = async () => {
               </DialogTitle>
             </DialogHeader>
             
+            {editingWarehouse && (
+              <WarehouseForm 
+                onSubmit={handleEditWarehouse} 
+                initialData={{
+                  name: editingWarehouse.name,
+                  location: editingWarehouse.location,
+                  capacity: editingWarehouse.capacity,
+                  manager: editingWarehouse.manager
+                }}
+                isLoading={isLoading} 
+              />
+            )}
           </DialogContent>
         </Dialog>
         
@@ -1162,7 +1216,3 @@ const handleDeleteWarehouse = async () => {
     </AnimatedGradientBackground>
   );
 } 
-
-function setIsLoading(arg0: boolean) {
-  throw new Error('Function not implemented.');
-}

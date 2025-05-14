@@ -12,9 +12,25 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Truck, Clock, CheckCircle, MapPin, Package, AlertCircle, MessageSquare, ChevronRight, ChevronLeft, Navigation } from 'lucide-react';
+import { Truck, Clock, CheckCircle, MapPin, Package, AlertCircle, MessageSquare, ChevronRight, ChevronLeft, Navigation, XCircle } from 'lucide-react';
 import { supabase } from '@/components/warehouses/SupabaseClient';
 import L from 'leaflet';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogOverlay,
+  DialogPortal,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 
 interface CourierDelivery {
   id: string;
@@ -33,6 +49,7 @@ interface CourierDelivery {
     estimated_delivery_time: string;
     priority: 'high' | 'medium' | 'low';
     pod_file?: string;
+    failure_reason?: string;
   };
   stops: {
     id: string;
@@ -54,6 +71,7 @@ interface CourierDelivery {
 
 // Update the Completed Deliveries section
 const CompletedDeliveries = ({ deliveries }: { deliveries: CourierDelivery[] }) => {
+  // Ensure we only show deliveries that are completed
   const completedDeliveries = deliveries.filter(d => d.current_delivery.status === 'completed');
 
   if (completedDeliveries.length === 0) {
@@ -107,6 +125,121 @@ const CompletedDeliveries = ({ deliveries }: { deliveries: CourierDelivery[] }) 
                   </div>
                 </div>
               )}
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+};
+
+// Add Failed Deliveries Component
+const FailedDeliveries = ({ deliveries }: { deliveries: CourierDelivery[] }) => {
+  // Ensure we only show deliveries that are failed
+  const failedDeliveries = deliveries.filter(d => d.current_delivery.status === 'failed');
+
+  if (failedDeliveries.length === 0) {
+    return (
+      <div className="text-center py-8 bg-gray-50 rounded-lg">
+        <p className="text-sm text-gray-500">No failed deliveries</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {failedDeliveries.map((delivery) => (
+        <Card key={delivery.id} className="bg-white">
+          <CardHeader className="p-4">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base">
+                Delivery #{delivery.current_delivery.id.slice(0, 8)}
+              </CardTitle>
+              <Badge variant="destructive" className="bg-red-100 text-red-800 border-red-200">
+                Failed
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="p-4">
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm font-medium text-gray-500">From</p>
+                  <p className="text-sm mt-1">{delivery.current_delivery.pickup_address}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">To</p>
+                  <p className="text-sm mt-1">{delivery.current_delivery.delivery_address}</p>
+                </div>
+              </div>
+              
+              <div className="bg-red-50 border border-red-100 rounded-lg p-3">
+                <p className="text-sm font-medium text-red-700">Failure Reason</p>
+                <p className="text-sm mt-1 text-red-600">
+                  {delivery.current_delivery.failure_reason || "Delivery attempt failed"}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+};
+
+// Add Pending Deliveries Component
+const PendingDeliveries = ({ deliveries }: { deliveries: CourierDelivery[] }) => {
+  // Ensure we only show deliveries that are pending
+  const pendingDeliveries = deliveries.filter(d => d.current_delivery.status === 'pending');
+
+  if (pendingDeliveries.length === 0) {
+    return (
+      <div className="text-center py-8 bg-gray-50 rounded-lg">
+        <p className="text-sm text-gray-500">No pending deliveries</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {pendingDeliveries.map((delivery) => (
+        <Card key={delivery.id} className="bg-white">
+          <CardHeader className="p-4">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base">
+                Delivery #{delivery.current_delivery.id.slice(0, 8)}
+              </CardTitle>
+              <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-200">
+                Pending
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="p-4">
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm font-medium text-gray-500">From</p>
+                  <p className="text-sm mt-1">{delivery.current_delivery.pickup_address}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">To</p>
+                  <p className="text-sm mt-1">{delivery.current_delivery.delivery_address}</p>
+                </div>
+              </div>
+              
+              <div className="bg-yellow-50 border border-yellow-100 rounded-lg p-3 flex items-center">
+                <Clock className="h-4 w-4 text-yellow-600 mr-2" />
+                <span className="text-sm text-yellow-700">
+                  Courier not started yet
+                </span>
+              </div>
+              
+              <div>
+                <p className="text-sm font-medium text-gray-500">Scheduled Delivery</p>
+                <p className="text-sm mt-1">
+                  {new Date(delivery.current_delivery.estimated_delivery_time).toLocaleString()}
+                </p>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -343,11 +476,137 @@ function CourierMap({ courier }: { courier: CourierDelivery }) {
   );
 }
 
+// Delivery Failure Dialog Component
+const DeliveryFailureDialog = ({ 
+  delivery, 
+  isOpen, 
+  onClose, 
+  onReportFailure 
+}: { 
+  delivery: CourierDelivery | null, 
+  isOpen: boolean, 
+  onClose: () => void,
+  onReportFailure: (id: string, reason: string) => void
+}) => {
+  const [failureReason, setFailureReason] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async () => {
+    if (!delivery || !failureReason.trim()) return;
+    
+    setIsSubmitting(true);
+    try {
+      await onReportFailure(delivery.id, failureReason.trim());
+      onClose();
+    } catch (error) {
+      console.error('Error reporting failure:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Reset reason when dialog opens with new delivery
+  useEffect(() => {
+    if (isOpen && delivery) {
+      setFailureReason('');
+    }
+  }, [isOpen, delivery]);
+  
+  // Add debug logging
+  useEffect(() => {
+    console.log("Dialog state:", { isOpen, delivery, failureReason });
+  }, [isOpen, delivery, failureReason]);
+
+  if (!delivery) return null;
+
+  return (
+    <Dialog open={isOpen} onOpenChange={(open) => {
+      console.log("Dialog onOpenChange called with:", open);
+      if (!open) onClose();
+    }}>
+      <DialogPortal>
+        <DialogOverlay className="bg-black/50" />
+        <DialogContent className="sm:max-w-[500px] z-[9999] bg-white fixed top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] rounded-lg shadow-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center text-red-600">
+              <XCircle className="h-5 w-5 mr-2" />
+              Report Delivery Failure
+            </DialogTitle>
+            <DialogDescription>
+              Please provide details about why this delivery failed.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
+              <h3 className="text-sm font-medium text-gray-700 mb-2">Delivery Details</h3>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <p className="text-gray-500">Delivery ID</p>
+                  <p className="font-medium">{delivery.current_delivery.id.slice(0, 8)}</p>
+                </div>
+                <div>
+                  <p className="text-gray-500">Courier</p>
+                  <p className="font-medium">{delivery.courier_name}</p>
+                </div>
+                <div>
+                  <p className="text-gray-500">From</p>
+                  <p className="font-medium">{delivery.current_delivery.pickup_address}</p>
+                </div>
+                <div>
+                  <p className="text-gray-500">To</p>
+                  <p className="font-medium">{delivery.current_delivery.delivery_address}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="failure-reason" className="text-sm font-medium">
+                Reason for Failure
+              </Label>
+              <Textarea
+                id="failure-reason"
+                placeholder="Enter the reason why the delivery failed..."
+                value={failureReason}
+                onChange={(e) => setFailureReason(e.target.value)}
+                className="min-h-[120px]"
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={onClose}
+              className="mr-2"
+              disabled={isSubmitting}
+            >
+              Cancel
+            </Button>
+            <Button 
+              variant="destructive"
+              onClick={handleSubmit}
+              disabled={!failureReason.trim() || isSubmitting}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {isSubmitting ? 'Reporting...' : 'Report Failure'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </DialogPortal>
+    </Dialog>
+  );
+};
+
 export default function LiveTracking() {
   const [activeCouriers, setActiveCouriers] = useState<CourierDelivery[]>([]);
   const [selectedCourier, setSelectedCourier] = useState<string | null>(null);
   const [newMessage, setNewMessage] = useState('');
   const [messageError, setMessageError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'completed' | 'failed' | 'pending'>('completed');
+  const [failureDialogOpen, setFailureDialogOpen] = useState(false);
+  const [selectedDeliveryForFailure, setSelectedDeliveryForFailure] = useState<CourierDelivery | null>(null);
+  const { toast: uiToast } = useToast();
 
   // Calculate time remaining until estimated delivery
   const getTimeRemaining = (estimatedTime: string) => {
@@ -535,6 +794,7 @@ export default function LiveTracking() {
             courier_id,
             pod_file,
             client_id,
+            notes,
             couriers!courier_id (
               id,
               name,
@@ -554,7 +814,7 @@ export default function LiveTracking() {
             )
           `)
           .eq('client_id', clientId)
-          .or('status.eq.in_progress,status.eq.completed');
+          .or('status.eq.in_progress,status.eq.completed,status.eq.failed,status.eq.pending');
 
         if (deliveriesError) {
           console.error('Error fetching deliveries:', deliveriesError);
@@ -618,7 +878,8 @@ export default function LiveTracking() {
               status: delivery.status,
               estimated_delivery_time: stops[stops.length - 1]?.estimated_arrival || new Date(Date.now() + 3600000).toISOString(),
               priority: 'medium' as const,
-              pod_file: delivery.pod_file
+              pod_file: delivery.pod_file,
+              failure_reason: delivery.notes
             },
             stops: stops.map((stop, index) => ({
               id: stop.id,
@@ -684,6 +945,61 @@ export default function LiveTracking() {
     };
   }, [activeCouriers]);
 
+  // Get active (in_progress), completed, failed, and pending deliveries
+  const inProgressDeliveries = activeCouriers.filter(d => d.current_delivery.status === 'in_progress');
+  const completedDeliveries = activeCouriers.filter(d => d.current_delivery.status === 'completed');
+  const failedDeliveries = activeCouriers.filter(d => d.current_delivery.status === 'failed');
+  const pendingDeliveries = activeCouriers.filter(d => d.current_delivery.status === 'pending');
+
+  // Function to handle reporting a delivery failure
+  const handleReportFailure = async (deliveryId: string, reason: string) => {
+    try {
+      // Update the delivery status to failed in the database
+      const { error } = await supabase
+        .from('deliveries')
+        .update({
+          status: 'failed',
+          notes: reason
+        })
+        .eq('id', deliveryId);
+
+      if (error) throw error;
+
+      // Use sonner toast instead of shadcn/ui toast
+      toast.success("Delivery marked as failed");
+
+      // Update local state
+      setActiveCouriers(prev => 
+        prev.map(courier => 
+          courier.id === deliveryId 
+            ? {
+                ...courier,
+                current_delivery: {
+                  ...courier.current_delivery,
+                  status: 'failed',
+                  failure_reason: reason
+                }
+              }
+            : courier
+        )
+      );
+
+      // Switch to failed tab
+      setActiveTab('failed');
+    } catch (error) {
+      console.error('Error reporting delivery failure:', error);
+      // Use sonner toast instead of shadcn/ui toast
+      toast.error("Error reporting failure. Please try again.");
+    }
+  };
+
+  // Function to open the failure dialog for a specific delivery
+  const openFailureDialog = (delivery: CourierDelivery) => {
+    console.log("Opening failure dialog for delivery:", delivery.id);
+    setSelectedDeliveryForFailure(delivery);
+    setFailureDialogOpen(true);
+  };
+
   // Show loading state
   if (activeCouriers.length === 0) {
     return (
@@ -699,7 +1015,19 @@ export default function LiveTracking() {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-2rem)] bg-gray-50">
+    <div className="flex flex-col h-[calc(100vh-2rem)] bg-gray-50 relative">
+      {/* Include the failure dialog with a key to force re-render when dialog state changes */}
+      <DeliveryFailureDialog
+        key={`dialog-${failureDialogOpen ? 'open' : 'closed'}-${selectedDeliveryForFailure?.id || 'none'}`}
+        delivery={selectedDeliveryForFailure}
+        isOpen={failureDialogOpen}
+        onClose={() => {
+          console.log("Dialog onClose called");
+          setFailureDialogOpen(false);
+        }}
+        onReportFailure={handleReportFailure}
+      />
+      
       {/* Header Section */}
       <div className="bg-white border-b px-4 py-3">
         <div className="max-w-7xl mx-auto">
@@ -714,27 +1042,19 @@ export default function LiveTracking() {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div className="bg-blue-50 p-3 rounded-lg border border-blue-100">
               <div className="text-sm font-medium text-blue-700">Active</div>
-              <div className="text-xl font-bold text-blue-800 mt-1">{activeCouriers.length}</div>
+              <div className="text-xl font-bold text-blue-800 mt-1">{inProgressDeliveries.length}</div>
             </div>
             <div className="bg-green-50 p-3 rounded-lg border border-green-100">
               <div className="text-sm font-medium text-green-700">Completed</div>
-              <div className="text-xl font-bold text-green-800 mt-1">
-                {activeCouriers.reduce((acc, courier) => 
-                  acc + courier.stops.filter(stop => stop.status === 'completed').length, 0
-                )}
-              </div>
+              <div className="text-xl font-bold text-green-800 mt-1">{completedDeliveries.length}</div>
             </div>
-            <div className="bg-orange-50 p-3 rounded-lg border border-orange-100">
-              <div className="text-sm font-medium text-orange-700">In Transit</div>
-              <div className="text-xl font-bold text-orange-800 mt-1">
-                {activeCouriers.filter(c => c.stops.some(s => s.status === 'current')).length}
-              </div>
+            <div className="bg-yellow-50 p-3 rounded-lg border border-yellow-100">
+              <div className="text-sm font-medium text-yellow-700">Pending</div>
+              <div className="text-xl font-bold text-yellow-800 mt-1">{pendingDeliveries.length}</div>
             </div>
-            <div className="bg-purple-50 p-3 rounded-lg border border-purple-100">
-              <div className="text-sm font-medium text-purple-700">Priority</div>
-              <div className="text-xl font-bold text-purple-800 mt-1">
-                {activeCouriers.filter(c => c.current_delivery.priority === 'high').length}
-              </div>
+            <div className="bg-red-50 p-3 rounded-lg border border-red-100">
+              <div className="text-sm font-medium text-red-700">Failed</div>
+              <div className="text-xl font-bold text-red-800 mt-1">{failedDeliveries.length}</div>
             </div>
           </div>
         </div>
@@ -749,7 +1069,7 @@ export default function LiveTracking() {
               <div>
                 <h2 className="text-base font-semibold text-gray-900">Active Couriers</h2>
                 <p className="text-sm text-gray-600 mt-1">
-                  {activeCouriers.length} deliveries in progress
+                  {inProgressDeliveries.length} deliveries in progress
                 </p>
               </div>
             </div>
@@ -757,7 +1077,7 @@ export default function LiveTracking() {
           
           <div className="flex-1 overflow-y-scroll scrollbar-custom">
             <div className="p-4 space-y-4">
-              {activeCouriers.map((courier) => (
+              {inProgressDeliveries.map((courier) => (
                 <Card
                   key={courier.id}
                   className={`cursor-pointer transition-all hover:shadow-md ${
@@ -770,7 +1090,7 @@ export default function LiveTracking() {
                       <div>
                         <CardTitle className="text-base flex items-center gap-2">
                           <Truck className="h-5 w-5 text-blue-500" />
-                          {`Courier ${courier.courier_id.slice(0, 8)}`}
+                          {courier.courier_name}
                         </CardTitle>
                         <div className="flex items-center gap-2 mt-2">
                           <Badge variant={
@@ -784,6 +1104,19 @@ export default function LiveTracking() {
                             {courier.stops.filter(stop => stop.status === 'completed').length} / {courier.stops.length} Stops
                           </Badge>
                         </div>
+                      </div>
+                      
+                      {/* Add action button */}
+                      <div onClick={(e) => e.stopPropagation()}>
+                        <Button 
+                          variant="destructive"
+                          size="sm"
+                          className="bg-red-600 hover:bg-red-700"
+                          onClick={() => openFailureDialog(courier)}
+                        >
+                          <XCircle className="h-4 w-4 mr-1" />
+                          Mark Failed
+                        </Button>
                       </div>
                     </div>
                   </CardHeader>
@@ -901,6 +1234,12 @@ export default function LiveTracking() {
                   </CardContent>
                 </Card>
               ))}
+              
+              {inProgressDeliveries.length === 0 && (
+                <div className="text-center py-8 bg-gray-50 rounded-lg">
+                  <p className="text-sm text-gray-500">No active deliveries in progress</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -941,9 +1280,9 @@ export default function LiveTracking() {
                   url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
                 <ZoomControl position="bottomright" />
-                <MapControls selectedCourier={selectedCourier} activeCouriers={activeCouriers} />
+                <MapControls selectedCourier={selectedCourier} activeCouriers={inProgressDeliveries} />
                 
-                {activeCouriers.map((courier) => {
+                {inProgressDeliveries.map((courier) => {
                   if (!selectedCourier || selectedCourier === courier.id) {
                     return (
                       <div key={courier.id}>
@@ -1050,19 +1389,47 @@ export default function LiveTracking() {
             </div>
           </div>
 
-          {/* Completed Deliveries Section */}
+          {/* Completed, Failed and Pending Deliveries Section */}
           <div className="bg-white border-t">
             <div className="p-4 border-b">
-              <div className="flex items-center justify-between">
-                <h2 className="text-base font-semibold">Completed Deliveries</h2>
-                <Badge variant="outline">
-                  {activeCouriers.filter(c => c.current_delivery.status === 'completed').length}
-                </Badge>
+              <div className="flex flex-wrap gap-2">
+                <button 
+                  onClick={() => setActiveTab('completed')}
+                  className={`px-3 py-1 text-sm font-medium rounded-lg ${
+                    activeTab === 'completed' 
+                      ? 'bg-green-100 text-green-800' 
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  Completed ({completedDeliveries.length})
+                </button>
+                <button 
+                  onClick={() => setActiveTab('failed')}
+                  className={`px-3 py-1 text-sm font-medium rounded-lg ${
+                    activeTab === 'failed' 
+                      ? 'bg-red-100 text-red-800' 
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  Failed ({failedDeliveries.length})
+                </button>
+                <button 
+                  onClick={() => setActiveTab('pending')}
+                  className={`px-3 py-1 text-sm font-medium rounded-lg ${
+                    activeTab === 'pending' 
+                      ? 'bg-yellow-100 text-yellow-800' 
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  Pending ({pendingDeliveries.length})
+                </button>
               </div>
             </div>
             <div className="h-[300px] overflow-y-scroll scrollbar-custom">
               <div className="p-4">
-                <CompletedDeliveries deliveries={activeCouriers} />
+                {activeTab === 'completed' && <CompletedDeliveries deliveries={activeCouriers} />}
+                {activeTab === 'failed' && <FailedDeliveries deliveries={activeCouriers} />}
+                {activeTab === 'pending' && <PendingDeliveries deliveries={activeCouriers} />}
               </div>
             </div>
           </div>

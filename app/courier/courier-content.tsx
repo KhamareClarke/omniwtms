@@ -372,6 +372,14 @@ export default function CourierContent() {
     checkAuthAndFetchData();
   }, []);
 
+  // Add a new useEffect to save deliveries to localStorage when they change
+  useEffect(() => {
+    if (deliveries.length > 0) {
+      console.log('Saving deliveries to localStorage cache');
+      localStorage.setItem('courierDeliveries', JSON.stringify(deliveries));
+    }
+  }, [deliveries]);
+
   const checkAuthAndFetchData = async () => {
     const currentCourier = localStorage.getItem('currentCourier');
     if (!currentCourier) {
@@ -394,6 +402,29 @@ export default function CourierContent() {
     try {
       setIsLoading(true);
       console.log('Fetching deliveries for courier:', courierId);
+      
+      // Try to load from cache first while we fetch fresh data
+      const cachedData = localStorage.getItem('courierDeliveries');
+      if (cachedData) {
+        try {
+          const parsedCache = JSON.parse(cachedData);
+          console.log('Loaded data from cache:', parsedCache.length, 'deliveries');
+          setDeliveries(parsedCache);
+          
+          // Update stats from cache
+          const cachedStats = {
+            totalDeliveries: parsedCache.length,
+            completedDeliveries: parsedCache.filter((d:any) => d.status === 'completed').length,
+            pendingDeliveries: parsedCache.filter((d:any) => d.status === 'pending').length,
+            failedDeliveries: parsedCache.filter((d:any) => d.status === 'failed').length,
+            totalDistance: parsedCache.reduce((acc:any, d:any) => acc + (d.optimized_route?.distance || 0), 0),
+            lastDeliveryTime: parsedCache[0]?.created_at || null
+          };
+          setStats(cachedStats);
+        } catch (error) {
+          console.error('Error parsing cached data:', error);
+        }
+      }
       
       const { data: deliveriesData, error: deliveriesError } = await supabase
         .from('deliveries')
@@ -473,18 +504,74 @@ export default function CourierContent() {
       });
 
       console.log('Processed deliveries with stops:', deliveriesWithStops);
-      setDeliveries(deliveriesWithStops);
-
-      // Calculate statistics
-      const stats = {
-        totalDeliveries: deliveriesWithStops.length,
-        completedDeliveries: deliveriesWithStops.filter(d => d.status === 'completed').length,
-        pendingDeliveries: deliveriesWithStops.filter(d => d.status === 'pending').length,
-        failedDeliveries: deliveriesWithStops.filter(d => d.status === 'failed').length,
-        totalDistance: deliveriesWithStops.reduce((acc, d) => acc + (d.optimized_route?.distance || 0), 0),
-        lastDeliveryTime: deliveriesWithStops[0]?.created_at || null
-      };
-      setStats(stats);
+      
+      // If there's cached data, merge it with the fresh data to preserve local state updates
+      if (cachedData) {
+        try {
+          const parsedCache = JSON.parse(cachedData);
+          
+          // For each delivery in the fresh data, prefer status from cache if it exists
+          const mergedDeliveries = deliveriesWithStops.map(freshDelivery => {
+            const cachedDelivery = parsedCache.find((d:any) => d.id === freshDelivery.id);
+            if (cachedDelivery) {
+              // If the cached status is 'completed' or 'failed', use that status
+              if (cachedDelivery.status === 'completed' || cachedDelivery.status === 'failed') {
+                console.log(`Using cached status '${cachedDelivery.status}' for delivery ${freshDelivery.id}`);
+                return {
+                  ...freshDelivery,
+                  status: cachedDelivery.status,
+                  pod_file: cachedDelivery.pod_file || freshDelivery.pod_file
+                };
+              }
+            }
+            return freshDelivery;
+          });
+          
+          setDeliveries(mergedDeliveries);
+          
+          // Calculate statistics based on merged data
+          const stats = {
+            totalDeliveries: mergedDeliveries.length,
+            completedDeliveries: mergedDeliveries.filter(d => d.status === 'completed').length,
+            pendingDeliveries: mergedDeliveries.filter(d => d.status === 'pending').length,
+            failedDeliveries: mergedDeliveries.filter(d => d.status === 'failed').length,
+            totalDistance: mergedDeliveries.reduce((acc, d) => acc + (d.optimized_route?.distance || 0), 0),
+            lastDeliveryTime: mergedDeliveries[0]?.created_at || null
+          };
+          setStats(stats);
+          
+          // Save the merged deliveries back to localStorage
+          localStorage.setItem('courierDeliveries', JSON.stringify(mergedDeliveries));
+          
+        } catch (error) {
+          console.error('Error merging with cached data:', error);
+          setDeliveries(deliveriesWithStops);
+          
+          // Calculate stats from fresh data
+          const stats = {
+            totalDeliveries: deliveriesWithStops.length,
+            completedDeliveries: deliveriesWithStops.filter(d => d.status === 'completed').length,
+            pendingDeliveries: deliveriesWithStops.filter(d => d.status === 'pending').length,
+            failedDeliveries: deliveriesWithStops.filter(d => d.status === 'failed').length,
+            totalDistance: deliveriesWithStops.reduce((acc, d) => acc + (d.optimized_route?.distance || 0), 0),
+            lastDeliveryTime: deliveriesWithStops[0]?.created_at || null
+          };
+          setStats(stats);
+        }
+      } else {
+        setDeliveries(deliveriesWithStops);
+        
+        // Calculate statistics based on fresh data
+        const stats = {
+          totalDeliveries: deliveriesWithStops.length,
+          completedDeliveries: deliveriesWithStops.filter(d => d.status === 'completed').length,
+          pendingDeliveries: deliveriesWithStops.filter(d => d.status === 'pending').length,
+          failedDeliveries: deliveriesWithStops.filter(d => d.status === 'failed').length,
+          totalDistance: deliveriesWithStops.reduce((acc, d) => acc + (d.optimized_route?.distance || 0), 0),
+          lastDeliveryTime: deliveriesWithStops[0]?.created_at || null
+        };
+        setStats(stats);
+      }
     } catch (error) {
       console.error('Error in fetchCourierDeliveries:', error);
       toast.error('Failed to fetch deliveries');
@@ -524,22 +611,47 @@ export default function CourierContent() {
       }
 
       console.log('Attempting database update...');
-      // Update the delivery status in the database
-      const { data, error: updateError } = await supabase
+      
+      // Create update object
+      const updateData = { 
+        status: newStatus,
+        updated_at: new Date().toISOString()
+      };
+      
+      console.log('Update data:', updateData);
+      
+      // First, try without returning data to avoid any potential issues with the return format
+      const { error: updateError } = await supabase
         .from('deliveries')
-        .update({ 
-          status: newStatus,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', deliveryId)
-        .select();
+        .update(updateData)
+        .eq('id', deliveryId);
 
       if (updateError) {
         console.error('Database update error:', updateError);
         throw updateError;
       }
 
-      console.log('Database update successful:', data);
+      console.log('Database update successful');
+      
+      // Verify the update was applied
+      const { data: checkData, error: checkError } = await supabase
+        .from('deliveries')
+        .select('status, id')
+        .eq('id', deliveryId)
+        .single();
+        
+      if (checkError) {
+        console.error('Error checking update result:', checkError);
+        throw checkError;
+      }
+      
+      console.log('Current status in database:', checkData);
+      
+      if (checkData.status !== newStatus) {
+        console.error('Status mismatch! Expected:', newStatus, 'Actual:', checkData.status);
+        toast.error('Status update failed, please try again');
+        return;
+      }
 
       // Update local state
       console.log('Updating local state...');
@@ -566,6 +678,10 @@ export default function CourierContent() {
 
       console.log('Status update completed successfully');
       toast.success(`Delivery status updated to ${newStatus.replace('_', ' ')}`);
+      
+      // Refresh data completely
+      setTimeout(checkAuthAndFetchData, 500);
+      
     } catch (error) {
       console.error('Error in handleStatusUpdate:', error);
       toast.error('Failed to update delivery status. Please try again.');
@@ -598,16 +714,47 @@ export default function CourierContent() {
         .from(BUCKET_NAME)
         .getPublicUrl(filePath);
 
-      // Update both pod_file and status to completed in one operation
+      console.log('File uploaded successfully, public URL:', publicUrl);
+      
+      // Create update object
+      const updateData = {
+        pod_file: publicUrl,
+        status: 'completed',
+        updated_at: new Date().toISOString()
+      };
+      
+      console.log('Updating delivery with POD data:', updateData);
+      
+      // Update without returning data to avoid format issues
       const { error: updateError } = await supabase
         .from('deliveries')
-        .update({ 
-          pod_file: publicUrl,
-          status: 'completed'
-        })
+        .update(updateData)
         .eq('id', deliveryId);
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error('Error updating delivery with POD:', updateError);
+        throw updateError;
+      }
+
+      // Verify the update was applied
+      const { data: checkData, error: checkError } = await supabase
+        .from('deliveries')
+        .select('status, pod_file, id')
+        .eq('id', deliveryId)
+        .single();
+        
+      if (checkError) {
+        console.error('Error checking POD update:', checkError);
+        throw checkError;
+      }
+      
+      console.log('Current delivery state in database:', checkData);
+      
+      if (checkData.status !== 'completed' || !checkData.pod_file) {
+        console.error('POD update verification failed!', checkData);
+        toast.error('Status update may not have been saved correctly');
+        return;
+      }
 
       // Update local state
       setDeliveries(prevDeliveries =>
@@ -630,6 +777,10 @@ export default function CourierContent() {
       }));
 
       toast.success('POD uploaded and delivery marked as completed');
+      
+      // Force complete data refresh
+      setTimeout(checkAuthAndFetchData, 500);
+      
     } catch (error: any) {
       console.error('Error uploading POD:', error);
       toast.error('Failed to upload POD file: ' + (error.message || 'Unknown error'));
@@ -807,6 +958,159 @@ export default function CourierContent() {
   };
 
   const renderDeliveryList = (deliveries: Delivery[]) => {
+    // Create helper function outside of JSX to avoid function declarations in blocks
+    const renderRouteSummary = (delivery: Delivery) => (
+      <div className="bg-muted/50 p-4 rounded-lg">
+        <h3 className="font-medium flex items-center gap-2 mb-3">
+          <Navigation className="h-4 w-4" />
+          Delivery Summary
+        </h3>
+        <div className="space-y-2">
+          <div className="flex justify-between text-sm">
+            <span>Total Distance:</span>
+            <span>{delivery.optimized_route?.distance.toFixed(2)} km</span>
+          </div>
+          <div className="flex justify-between text-sm">
+            <span>Total Duration:</span>
+            <span>
+              {Math.floor(delivery.optimized_route?.duration || 0)}h {Math.round(((delivery.optimized_route?.duration || 0) % 1) * 60)}m
+            </span>
+          </div>
+          {delivery.optimized_route?.totalFuelCost && (
+            <div className="flex justify-between text-sm">
+              <span>Total Fuel Cost:</span>
+              <span>Rs. {Math.round(delivery.optimized_route.totalFuelCost)}</span>
+            </div>
+          )}
+          {delivery.status === 'failed' && delivery.notes?.startsWith('Failed Delivery') && (
+            <div className="mt-2">
+              <span className="text-sm font-medium">Failure Information:</span>
+              <p className="text-sm text-muted-foreground mt-1 whitespace-pre-line">
+                {delivery.notes}
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+    
+    // Create helper for route information to avoid function declarations in blocks
+    const renderRouteInfo = (delivery: Delivery) => (
+      <div className="space-y-6">
+        <div className="bg-muted/50 p-4 rounded-lg">
+          <h3 className="font-medium flex items-center gap-2 mb-3">
+            <Navigation className="h-4 w-4" />
+            Route Information
+          </h3>
+          <div className="space-y-2 mb-4">
+            <div className="flex justify-between text-sm">
+              <span>Total Distance:</span>
+              <span>{delivery.optimized_route?.distance.toFixed(2)} km</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span>Estimated Duration:</span>
+              <span>
+                {Math.floor(delivery.optimized_route?.duration || 0)}h {Math.round(((delivery.optimized_route?.duration || 0) % 1) * 60)}m
+              </span>
+            </div>
+            {delivery.optimized_route?.totalFuelCost && (
+              <div className="flex justify-between text-sm">
+                <span>Estimated Fuel Cost:</span>
+                <span>Rs. {Math.round(delivery.optimized_route.totalFuelCost)}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Map View */}
+          {delivery.delivery_stops && delivery.delivery_stops.length > 0 && (
+            <DeliveryMap stops={delivery.delivery_stops} />
+          )}
+
+          <div className="space-y-3 mt-6">
+            {delivery.delivery_stops?.map((stop, index) => (
+              <div key={index} className="border rounded-lg p-3 bg-background">
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <p className="font-medium">
+                      Stop {index + 1}: {stop.stop_type === 'pickup' ? 'Pickup' : 'Delivery'}
+                    </p>
+                    <p className="text-sm text-muted-foreground">{stop.address}</p>
+                    <div className="mt-1 space-y-1">
+                      <p className="text-xs text-muted-foreground">
+                        Distance from start: {stop.route_info?.distance.toFixed(2)} km
+                      </p>
+                      {stop.route_info && stop.route_info.distanceFromPrevious !== undefined && (
+                        <p className="text-xs text-gray-600">
+                          Distance from previous: {stop.route_info.distanceFromPrevious.toFixed(1)} km
+                        </p>
+                      )}
+                      <p className="text-xs text-muted-foreground">
+                        Duration: {Math.floor(stop.route_info?.duration || 0)}h {Math.round(((stop.route_info?.duration || 0) % 1) * 60)}m
+                      </p>
+                      {stop.route_info && stop.route_info.durationFromPrevious !== undefined && (
+                        <p className="text-xs text-gray-600">
+                          Duration from previous: {stop.route_info.durationFromPrevious.toFixed(1)}h {Math.round(((stop.route_info?.durationFromPrevious || 0) % 1) * 60)}m
+                        </p>
+                      )}
+                      <p className="text-xs text-muted-foreground">
+                        Traffic: {stop.route_info?.traffic || 'Unknown'}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Weather: {stop.route_info?.weather || 'Unknown'}
+                      </p>
+                      {stop.route_info && stop.estimated_time && (
+                        <p className="text-sm text-gray-600">
+                          Estimated arrival: {formatDateTime(stop.estimated_time)}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <Badge
+                    variant={stop.status === 'completed' ? 'success' : 'default'}
+                  >
+                    {stop.status.toUpperCase()}
+                  </Badge>
+                </div>
+
+                {delivery.status === 'in_progress' && stop.status === 'pending' && (
+                  <div className="mt-2 space-y-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('Button clicked for stop:', {
+                          stop,
+                          index,
+                          deliveryId: delivery.id
+                        });
+                        if (delivery.delivery_stops) {
+                          handleStopUpdate(
+                            delivery.delivery_stops,
+                            stop,
+                            index
+                          );
+                        }
+                      }}
+                    >
+                      Mark as Completed
+                    </Button>
+                  </div>
+                )}
+
+                {stop.actual_arrival_time && (
+                  <div className="mt-2 text-sm text-muted-foreground">
+                    Arrived: {new Date(stop.actual_arrival_time).toLocaleString()}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+
     return (
       <div className="space-y-4">
         {deliveries.map((delivery) => (
@@ -885,157 +1189,10 @@ export default function CourierContent() {
                   )}
 
                   {/* Route Summary for Completed/Failed Deliveries */}
-                  {(delivery.status === 'completed' || delivery.status === 'failed') && (
-                    <div className="bg-muted/50 p-4 rounded-lg">
-                      <h3 className="font-medium flex items-center gap-2 mb-3">
-                        <Navigation className="h-4 w-4" />
-                        Delivery Summary
-                      </h3>
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-sm">
-                          <span>Total Distance:</span>
-                          <span>{delivery.optimized_route?.distance.toFixed(2)} km</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span>Total Duration:</span>
-                          <span>
-                            {Math.floor(delivery.optimized_route?.duration || 0)}h {Math.round(((delivery.optimized_route?.duration || 0) % 1) * 60)}m
-                          </span>
-                        </div>
-                        {delivery.optimized_route?.totalFuelCost && (
-                          <div className="flex justify-between text-sm">
-                            <span>Total Fuel Cost:</span>
-                            <span>Rs. {Math.round(delivery.optimized_route.totalFuelCost)}</span>
-                          </div>
-                        )}
-                        {delivery.status === 'failed' && delivery.notes?.startsWith('Failed Delivery') && (
-                          <div className="mt-2">
-                            <span className="text-sm font-medium">Failure Information:</span>
-                            <p className="text-sm text-muted-foreground mt-1 whitespace-pre-line">
-                              {delivery.notes}
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
+                  {(delivery.status === 'completed' || delivery.status === 'failed') && renderRouteSummary(delivery)}
 
                   {/* Route and Stops Section for Active Deliveries */}
-                  {delivery.status === 'in_progress' && (
-                    <div className="space-y-6">
-                      <div className="bg-muted/50 p-4 rounded-lg">
-                        <h3 className="font-medium flex items-center gap-2 mb-3">
-                          <Navigation className="h-4 w-4" />
-                          Route Information
-                        </h3>
-                        <div className="space-y-2 mb-4">
-                          <div className="flex justify-between text-sm">
-                            <span>Total Distance:</span>
-                            <span>{delivery.optimized_route?.distance.toFixed(2)} km</span>
-                          </div>
-                          <div className="flex justify-between text-sm">
-                            <span>Estimated Duration:</span>
-                            <span>
-                              {Math.floor(delivery.optimized_route?.duration || 0)}h {Math.round(((delivery.optimized_route?.duration || 0) % 1) * 60)}m
-                            </span>
-                          </div>
-                          {delivery.optimized_route?.totalFuelCost && (
-                            <div className="flex justify-between text-sm">
-                              <span>Estimated Fuel Cost:</span>
-                              <span>Rs. {Math.round(delivery.optimized_route.totalFuelCost)}</span>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Map View */}
-                        {delivery.delivery_stops && delivery.delivery_stops.length > 0 && (
-                          <DeliveryMap stops={delivery.delivery_stops} />
-                        )}
-
-                        <div className="space-y-3 mt-6">
-                          {delivery.delivery_stops?.map((stop, index) => (
-                            <div key={index} className="border rounded-lg p-3 bg-background">
-                              <div className="flex justify-between items-start mb-2">
-                                <div>
-                                  <p className="font-medium">
-                                    Stop {index + 1}: {stop.stop_type === 'pickup' ? 'Pickup' : 'Delivery'}
-                                  </p>
-                                  <p className="text-sm text-muted-foreground">{stop.address}</p>
-                                  <div className="mt-1 space-y-1">
-                                    <p className="text-xs text-muted-foreground">
-                                      Distance from start: {stop.route_info?.distance.toFixed(2)} km
-                                    </p>
-                                    {stop.route_info && stop.route_info.distanceFromPrevious !== undefined && (
-                                      <p className="text-xs text-gray-600">
-                                        Distance from previous: {stop.route_info.distanceFromPrevious.toFixed(1)} km
-                                      </p>
-                                    )}
-                                    <p className="text-xs text-muted-foreground">
-                                      Duration: {Math.floor(stop.route_info?.duration || 0)}h {Math.round(((stop.route_info?.duration || 0) % 1) * 60)}m
-                                    </p>
-                                    {stop.route_info && stop.route_info.durationFromPrevious !== undefined && (
-                                      <p className="text-xs text-gray-600">
-                                        Duration from previous: {stop.route_info.durationFromPrevious.toFixed(1)}h {Math.round(((stop.route_info?.durationFromPrevious || 0) % 1) * 60)}m
-                                      </p>
-                                    )}
-                                    <p className="text-xs text-muted-foreground">
-                                      Traffic: {stop.route_info?.traffic || 'Unknown'}
-                                    </p>
-                                    <p className="text-xs text-muted-foreground">
-                                      Weather: {stop.route_info?.weather || 'Unknown'}
-                                    </p>
-                                    {stop.route_info && stop.estimated_time && (
-                                      <p className="text-sm text-gray-600">
-                                        Estimated arrival: {formatDateTime(stop.estimated_time)}
-                                      </p>
-                                    )}
-                                  </div>
-                                </div>
-                                <Badge
-                                  variant={stop.status === 'completed' ? 'success' : 'default'}
-                                >
-                                  {stop.status.toUpperCase()}
-                                </Badge>
-                              </div>
-
-                              {delivery.status === 'in_progress' && stop.status === 'pending' && (
-                                <div className="mt-2 space-y-2">
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={(e) => {
-                                      e.preventDefault();
-                                      e.stopPropagation();
-                                      console.log('Button clicked for stop:', {
-                                        stop,
-                                        index,
-                                        deliveryId: delivery.id
-                                      });
-                                      if (delivery.delivery_stops) {
-                                        handleStopUpdate(
-                                          delivery.delivery_stops,
-                                          stop,
-                                          index
-                                        );
-                                      }
-                                    }}
-                                  >
-                                    Mark as Completed
-                                  </Button>
-                                </div>
-                              )}
-
-                              {stop.actual_arrival_time && (
-                                <div className="mt-2 text-sm text-muted-foreground">
-                                  Arrived: {new Date(stop.actual_arrival_time).toLocaleString()}
-                                </div>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                  {delivery.status === 'in_progress' && renderRouteInfo(delivery)}
 
                   {/* POD Section */}
                   {delivery.status === 'in_progress' && (
@@ -1149,9 +1306,11 @@ export default function CourierContent() {
 
   const failureDialog = (
     <Dialog open={failureDialogOpen} onOpenChange={setFailureDialogOpen}>
-      <DialogContent>
+      <DialogContent className="bg-white/95 backdrop-blur-sm">
         <DialogHeader>
-          <DialogTitle>Mark Delivery as Failed</DialogTitle>
+          <DialogTitle className="text-xl font-bold bg-gradient-to-r from-[#3456FF] to-[#8763FF] bg-clip-text text-transparent">
+            Report Delivery Failure
+          </DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div className="space-y-2">
@@ -1414,7 +1573,56 @@ export default function CourierContent() {
                 Report Delivery Failure
               </DialogTitle>
             </DialogHeader>
-            {/* Rest of the failure dialog content remains unchanged */}
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Reason for Failure</label>
+                <Select
+                  value={failureReason.reason}
+                  onValueChange={(value) => setFailureReason(prev => ({ ...prev, reason: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a reason" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="customer_unavailable">Customer Unavailable</SelectItem>
+                    <SelectItem value="wrong_address">Wrong Address</SelectItem>
+                    <SelectItem value="package_damaged">Package Damaged</SelectItem>
+                    <SelectItem value="vehicle_breakdown">Vehicle Breakdown</SelectItem>
+                    <SelectItem value="weather_conditions">Bad Weather Conditions</SelectItem>
+                    <SelectItem value="traffic_issues">Severe Traffic Issues</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Additional Details</label>
+                <Textarea
+                  value={failureReason.details}
+                  onChange={(e) => setFailureReason(prev => ({ ...prev, details: e.target.value }))}
+                  placeholder="Provide more details about the failure..."
+                  className="min-h-[100px]"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setFailureDialogOpen(false);
+                  setSelectedDeliveryId(null);
+                  setFailureReason({ reason: '', details: '' });
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleDeliveryFailure}
+                disabled={!failureReason.reason}
+              >
+                Mark as Failed
+              </Button>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
       </main>
