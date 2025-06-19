@@ -1,5 +1,4 @@
 import { Toast } from "@/components/ui/toast";
-
 type ToastProps = React.ComponentProps<typeof Toast>;
 
 export function useToast() {
