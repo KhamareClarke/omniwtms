@@ -137,14 +137,14 @@ export default function PlatformFeatures() {
   ];
 
   const integrations = [
-    "Shopify",
-    "Amazon",
-    "eBay",
-    "Etsy",
-    "QuickBooks",
-    "Xero",
-    "Vinted",
-    "Depop",
+    "shopify.jpeg",
+    "amazon.jpeg",
+    "ebay.jpeg",
+    "etsy.jpeg",
+    "books.jpeg",
+    "xero.jpeg",
+    // "Vinted",
+    // "Depop",
   ];
 
   return (
@@ -333,13 +333,17 @@ export default function PlatformFeatures() {
           <p className="text-center text-gray-700 mb-6">
             Connect instantly with:
           </p>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {integrations.map((integration, index) => (
               <div
                 key={index}
                 className="flex items-center justify-center gap-3 bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow"
               >
-                <span className="text-gray-700 font-medium">{integration}</span>
+                <img
+                  src={`/images/${integration}`}
+                  alt="image"
+                  className="text-gray-700 h-auto w-auto max-h-20 max-w-20 object-contain"
+                />
               </div>
             ))}
           </div>

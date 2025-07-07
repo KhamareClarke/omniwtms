@@ -26,7 +26,7 @@ export default function Home() {
         <section id="demo-video">
           <VideoShowcase />
         </section>
-        {/* <LogoCarouselSection /> */}
+        <LogoCarouselSection />
 
         <section
           id="case-study"
