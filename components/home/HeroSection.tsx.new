@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, Play, ArrowRight, TrendingUp, Zap, BarChart3 } from 'lucide-react';
-import SignupModal from '@/components/SignupModal';
+import SignupModal from './SignupModal';
 import Image from 'next/image';
 
 export default function HeroSection() {
