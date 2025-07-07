@@ -28,6 +28,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import Header from "@/components/layout/header";
+import Footer from "@/components/layout/footer";
 
 // Initialize Supabase client
 const supabaseUrl = "https://qpkaklmbiwitlroykjim.supabase.co";
@@ -167,289 +169,299 @@ export default function SignUpPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background to-secondary p-4">
-      <Card className="w-full max-w-md bg-white/10 backdrop-blur-lg border-white/20 shadow-xl">
-        <CardHeader className="space-y-2">
-          <CardTitle className="text-2xl sm:text-3xl font-heading font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-            {userType === "client"
-              ? "Create Client Account"
-              : "Apply as Courier"}
-          </CardTitle>
-          <CardDescription className="text-gray-400">
-            {userType === "client"
-              ? "Enter your details to create a client account"
-              : "Fill in your details to apply as a courier"}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {userType === "client" ? (
-            <Form {...clientForm}>
-              <form
-                onSubmit={clientForm.handleSubmit(onClientSubmit)}
-                className="space-y-4"
-              >
-                <FormField
-                  control={clientForm.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-gray-400">Email</FormLabel>
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-                        <FormControl>
-                          <Input
-                            placeholder="john@example.com"
-                            className="pl-10 bg-white/5 border-white/20 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500"
-                            {...field}
-                          />
-                        </FormControl>
-                      </div>
-                      <FormMessage className="text-red-400" />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={clientForm.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-gray-400">Password</FormLabel>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-                        <FormControl>
-                          <Input
-                            type="password"
-                            placeholder="••••••••"
-                            className="pl-10 bg-white/5 border-white/20 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500"
-                            {...field}
-                          />
-                        </FormControl>
-                      </div>
-                      <FormMessage className="text-red-400" />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={clientForm.control}
-                  name="company"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-gray-400">
-                        Company Name
-                      </FormLabel>
-                      <div className="relative">
-                        <Truck className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-                        <FormControl>
-                          <Input
-                            placeholder="Your Company"
-                            className="pl-10 bg-white/5 border-white/20 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500"
-                            {...field}
-                          />
-                        </FormControl>
-                      </div>
-                      <FormMessage className="text-red-400" />
-                    </FormItem>
-                  )}
-                />
-
-                <Button
-                  type="submit"
-                  className="w-full bg-gradient-to-r from-[#3456FF] to-[#8763FF] hover:from-[#3456FF]/90 hover:to-[#8763FF]/90 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={isLoading}
+    <>
+      <Header />
+      <div className="min-h-screen mt-32 flex items-center justify-center bg-gradient-to-b from-background to-secondary p-4">
+        <Card className="w-full max-w-md bg-white/10 backdrop-blur-lg border-white/20 shadow-xl">
+          <CardHeader className="space-y-2">
+            <CardTitle className="text-2xl sm:text-3xl font-heading font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              {userType === "client"
+                ? "Create Client Account"
+                : "Apply as Courier"}
+            </CardTitle>
+            <CardDescription className="text-gray-400">
+              {userType === "client"
+                ? "Enter your details to create a client account"
+                : "Fill in your details to apply as a courier"}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {userType === "client" ? (
+              <Form {...clientForm}>
+                <form
+                  onSubmit={clientForm.handleSubmit(onClientSubmit)}
+                  className="space-y-4"
                 >
-                  {isLoading ? "Creating account..." : "Create Account"}
-                </Button>
-              </form>
-            </Form>
-          ) : (
-            <Form {...courierForm}>
-              <form
-                onSubmit={courierForm.handleSubmit(onCourierSubmit)}
-                className="space-y-4"
-              >
-                <FormField
-                  control={courierForm.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-gray-400">Full Name</FormLabel>
-                      <div className="relative">
-                        <User className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-                        <FormControl>
-                          <Input
-                            placeholder="John Doe"
-                            className="pl-10 bg-white/5 border-white/20 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500"
-                            {...field}
-                          />
-                        </FormControl>
-                      </div>
-                      <FormMessage className="text-red-400" />
-                    </FormItem>
-                  )}
-                />
+                  <FormField
+                    control={clientForm.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-gray-400">Email</FormLabel>
+                        <div className="relative">
+                          <Mail className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+                          <FormControl>
+                            <Input
+                              placeholder="john@example.com"
+                              className="pl-10 bg-white/5 border-white/20 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500"
+                              {...field}
+                            />
+                          </FormControl>
+                        </div>
+                        <FormMessage className="text-red-400" />
+                      </FormItem>
+                    )}
+                  />
 
-                <FormField
-                  control={courierForm.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-gray-400">Email</FormLabel>
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-                        <FormControl>
-                          <Input
-                            placeholder="john@example.com"
-                            className="pl-10 bg-white/5 border-white/20 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500"
-                            {...field}
-                          />
-                        </FormControl>
-                      </div>
-                      <FormMessage className="text-red-400" />
-                    </FormItem>
-                  )}
-                />
+                  <FormField
+                    control={clientForm.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-gray-400">
+                          Password
+                        </FormLabel>
+                        <div className="relative">
+                          <Lock className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+                          <FormControl>
+                            <Input
+                              type="password"
+                              placeholder="••••••••"
+                              className="pl-10 bg-white/5 border-white/20 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500"
+                              {...field}
+                            />
+                          </FormControl>
+                        </div>
+                        <FormMessage className="text-red-400" />
+                      </FormItem>
+                    )}
+                  />
 
-                <FormField
-                  control={courierForm.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-gray-400">Password</FormLabel>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-                        <FormControl>
-                          <Input
-                            type="password"
-                            placeholder="••••••••"
-                            className="pl-10 bg-white/5 border-white/20 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500"
-                            {...field}
-                          />
-                        </FormControl>
-                      </div>
-                      <FormMessage className="text-red-400" />
-                    </FormItem>
-                  )}
-                />
+                  <FormField
+                    control={clientForm.control}
+                    name="company"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-gray-400">
+                          Company Name
+                        </FormLabel>
+                        <div className="relative">
+                          <Truck className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+                          <FormControl>
+                            <Input
+                              placeholder="Your Company"
+                              className="pl-10 bg-white/5 border-white/20 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500"
+                              {...field}
+                            />
+                          </FormControl>
+                        </div>
+                        <FormMessage className="text-red-400" />
+                      </FormItem>
+                    )}
+                  />
 
-                <FormField
-                  control={courierForm.control}
-                  name="phone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-gray-400">
-                        Phone Number
-                      </FormLabel>
-                      <div className="relative">
-                        <Phone className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-                        <FormControl>
-                          <Input
-                            placeholder="+1234567890"
-                            className="pl-10 bg-white/5 border-white/20 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500"
-                            {...field}
-                          />
-                        </FormControl>
-                      </div>
-                      <FormMessage className="text-red-400" />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={courierForm.control}
-                  name="vehicle_type"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-gray-400">
-                        Vehicle Type
-                      </FormLabel>
-                      <div className="relative">
-                        <Truck className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-                        <FormControl>
-                          <Input
-                            placeholder="e.g. Car, Bike, Van"
-                            className="pl-10 bg-white/5 border-white/20 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500"
-                            {...field}
-                          />
-                        </FormControl>
-                      </div>
-                      <FormMessage className="text-red-400" />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={courierForm.control}
-                  name="vehicle_registration"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-gray-400">
-                        Vehicle Registration
-                      </FormLabel>
-                      <div className="relative">
-                        <Truck className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-                        <FormControl>
-                          <Input
-                            placeholder="e.g. ABC-123"
-                            className="pl-10 bg-white/5 border-white/20 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500"
-                            {...field}
-                          />
-                        </FormControl>
-                      </div>
-                      <FormMessage className="text-red-400" />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={courierForm.control}
-                  name="assigned_region"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-gray-400">
-                        Preferred Region
-                      </FormLabel>
-                      <div className="relative">
-                        <MapPin className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-                        <FormControl>
-                          <Input
-                            placeholder="e.g. North, South, Central"
-                            className="pl-10 bg-white/5 border-white/20 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500"
-                            {...field}
-                          />
-                        </FormControl>
-                      </div>
-                      <FormMessage className="text-red-400" />
-                    </FormItem>
-                  )}
-                />
-
-                <Button
-                  type="submit"
-                  className="w-full bg-gradient-to-r from-[#3456FF] to-[#8763FF] hover:from-[#3456FF]/90 hover:to-[#8763FF]/90 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={isLoading}
+                  <Button
+                    type="submit"
+                    className="w-full bg-gradient-to-r from-[#3456FF] to-[#8763FF] hover:from-[#3456FF]/90 hover:to-[#8763FF]/90 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? "Creating account..." : "Create Account"}
+                  </Button>
+                </form>
+              </Form>
+            ) : (
+              <Form {...courierForm}>
+                <form
+                  onSubmit={courierForm.handleSubmit(onCourierSubmit)}
+                  className="space-y-4"
                 >
-                  {isLoading
-                    ? "Submitting application..."
-                    : "Submit Application"}
-                </Button>
-              </form>
-            </Form>
-          )}
-        </CardContent>
-        <CardFooter className="flex flex-col space-y-4">
-          <div className="text-sm text-center">
-            <span className="text-gray-400">Already have an account? </span>
-            <Link
-              href={`/auth/login?type=${userType}`}
-              className="text-[#3456FF] hover:text-[#8763FF] font-medium transition-colors hover:underline"
-            >
-              Sign in
-            </Link>
-          </div>
-        </CardFooter>
-      </Card>
-    </div>
+                  <FormField
+                    control={courierForm.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-gray-400">
+                          Full Name
+                        </FormLabel>
+                        <div className="relative">
+                          <User className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+                          <FormControl>
+                            <Input
+                              placeholder="John Doe"
+                              className="pl-10 bg-white/5 border-white/20 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500"
+                              {...field}
+                            />
+                          </FormControl>
+                        </div>
+                        <FormMessage className="text-red-400" />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={courierForm.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-gray-400">Email</FormLabel>
+                        <div className="relative">
+                          <Mail className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+                          <FormControl>
+                            <Input
+                              placeholder="john@example.com"
+                              className="pl-10 bg-white/5 border-white/20 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500"
+                              {...field}
+                            />
+                          </FormControl>
+                        </div>
+                        <FormMessage className="text-red-400" />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={courierForm.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-gray-400">
+                          Password
+                        </FormLabel>
+                        <div className="relative">
+                          <Lock className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+                          <FormControl>
+                            <Input
+                              type="password"
+                              placeholder="••••••••"
+                              className="pl-10 bg-white/5 border-white/20 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500"
+                              {...field}
+                            />
+                          </FormControl>
+                        </div>
+                        <FormMessage className="text-red-400" />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={courierForm.control}
+                    name="phone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-gray-400">
+                          Phone Number
+                        </FormLabel>
+                        <div className="relative">
+                          <Phone className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+                          <FormControl>
+                            <Input
+                              placeholder="+1234567890"
+                              className="pl-10 bg-white/5 border-white/20 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500"
+                              {...field}
+                            />
+                          </FormControl>
+                        </div>
+                        <FormMessage className="text-red-400" />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={courierForm.control}
+                    name="vehicle_type"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-gray-400">
+                          Vehicle Type
+                        </FormLabel>
+                        <div className="relative">
+                          <Truck className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+                          <FormControl>
+                            <Input
+                              placeholder="e.g. Car, Bike, Van"
+                              className="pl-10 bg-white/5 border-white/20 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500"
+                              {...field}
+                            />
+                          </FormControl>
+                        </div>
+                        <FormMessage className="text-red-400" />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={courierForm.control}
+                    name="vehicle_registration"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-gray-400">
+                          Vehicle Registration
+                        </FormLabel>
+                        <div className="relative">
+                          <Truck className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+                          <FormControl>
+                            <Input
+                              placeholder="e.g. ABC-123"
+                              className="pl-10 bg-white/5 border-white/20 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500"
+                              {...field}
+                            />
+                          </FormControl>
+                        </div>
+                        <FormMessage className="text-red-400" />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={courierForm.control}
+                    name="assigned_region"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-gray-400">
+                          Preferred Region
+                        </FormLabel>
+                        <div className="relative">
+                          <MapPin className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+                          <FormControl>
+                            <Input
+                              placeholder="e.g. North, South, Central"
+                              className="pl-10 bg-white/5 border-white/20 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500"
+                              {...field}
+                            />
+                          </FormControl>
+                        </div>
+                        <FormMessage className="text-red-400" />
+                      </FormItem>
+                    )}
+                  />
+
+                  <Button
+                    type="submit"
+                    className="w-full bg-gradient-to-r from-[#3456FF] to-[#8763FF] hover:from-[#3456FF]/90 hover:to-[#8763FF]/90 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={isLoading}
+                  >
+                    {isLoading
+                      ? "Submitting application..."
+                      : "Submit Application"}
+                  </Button>
+                </form>
+              </Form>
+            )}
+          </CardContent>
+          <CardFooter className="flex flex-col space-y-4">
+            <div className="text-sm text-center">
+              <span className="text-gray-400">Already have an account? </span>
+              <Link
+                href={`/auth/login?type=${userType}`}
+                className="text-[#3456FF] hover:text-[#8763FF] font-medium transition-colors hover:underline"
+              >
+                Sign in
+              </Link>
+            </div>
+          </CardFooter>
+        </Card>
+      </div>
+      <Footer />
+    </>
   );
 }

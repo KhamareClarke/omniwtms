@@ -35,6 +35,8 @@ import {
   CheckCircle,
   ArrowRight,
 } from "lucide-react";
+import Header from "@/components/layout/header";
+import Footer from "@/components/layout/footer";
 
 // Initialize Supabase client
 const supabaseUrl = "https://qpkaklmbiwitlroykjim.supabase.co";
@@ -396,7 +398,7 @@ export default function LoginPage() {
       <AnimatedBackground />
 
       {/* Header */}
-      <header className="w-full flex items-center justify-between px-4 md:px-8 py-4 backdrop-blur-md bg-white/60 sticky top-0 z-50 border-b border-white/20">
+      {/* <header className="w-full flex items-center justify-between px-4 md:px-8 py-4 backdrop-blur-md bg-white/60 sticky top-0 z-50 border-b border-white/20">
         <div className="flex items-center gap-2"></div>
         <nav className="hidden md:flex gap-6 items-center text-gray-600 text-sm">
           <Link
@@ -432,9 +434,9 @@ export default function LoginPage() {
         >
           Menu
         </Button>
-      </header>
-
-      <main className="flex-1 flex flex-col lg:flex-row items-start lg:items-center justify-center gap-6 sm:gap-8 lg:gap-12 xl:gap-16 px-4 sm:px-6 md:px-8 py-8 sm:py-10 md:py-12 overflow-x-hidden">
+      </header> */}
+      <Header />
+      <main className="flex-1 flex mt-32 flex-col lg:flex-row items-start lg:items-center justify-center gap-6 sm:gap-8 lg:gap-12 xl:gap-16 px-4 sm:px-6 md:px-8 py-8 sm:py-10 md:py-12 overflow-x-hidden">
         {/* Login Card - Left Side */}
         <div className="w-full max-w-[420px] z-10 order-2 lg:order-1 mt-10 lg:mt-0 mx-auto lg:mx-0">
           <motion.div
@@ -1505,9 +1507,9 @@ export default function LoginPage() {
           </motion.div>
         </div>
       </main>
-
+      <Footer />
       {/* Footer */}
-      <footer className="w-full bg-white/80 backdrop-blur-md border-t border-gray-100 py-8 relative z-10 mt-8">
+      {/* <footer className="w-full bg-white/80 backdrop-blur-md border-t border-gray-100 py-8 relative z-10 mt-8">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-2">
@@ -1546,7 +1548,7 @@ export default function LoginPage() {
             </div>
           </div>
         </div>
-      </footer>
+      </footer> */}
     </div>
   );
 }
