@@ -6,7 +6,7 @@ import { Menu, X, LogIn, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-// import SignupModal from "../components/SignupModal";
+// import SignupModal from "@/components/SignupModal";
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -52,17 +52,20 @@ export default function Header() {
               href="/"
               className="flex items-center gap-3 group cursor-pointer"
             >
-              <div className="relative w-12 h-12 flex-shrink-0 group-hover:scale-105 transition-all duration-300 bg-gradient-to-br from-blue-50 to-white p-1.5 rounded-lg shadow-md group-hover:shadow-lg">
+              <div className="relative w-16 h-16 flex-shrink-0 group-hover:scale-105 transition-all duration-300 bg-gradient-to-br from-blue-50 to-white p-2 rounded-lg shadow-md group-hover:shadow-lg">
                 <Image
                   src="/images/omniwtmslogo.png"
                   alt="OmniWTMS Logo"
-                  width={48}
-                  height={48}
+                  width={64}
+                  height={64}
                   className="object-contain rounded-md"
+                  priority={true}
+                  loading="eager"
+                  unoptimized={false}
                 />
               </div>
               <div className="flex flex-col">
-                <span className="text-xl font-extrabold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                <span className="text-xl font-extrabold bg-gradient-to-r from-blue-700 via-purple-600 to-indigo-700 text-transparent bg-clip-text animate-gradient-slow">
                   OmniWTMS
                 </span>
                 <div className="text-[10px] font-medium text-blue-600 -mt-0.5">
@@ -98,7 +101,9 @@ export default function Header() {
                 variant="default"
                 size="sm"
                 className="bg-blue-600 hover:bg-blue-700 text-white"
-                onClick={() => router.push("/auth/signup?type=client")}
+                onClick={() => {
+                  router.push("/auth/signup?type=client");
+                }}
               >
                 Get Started
                 <ArrowRight className="ml-1.5 w-4 h-4" />
@@ -149,7 +154,9 @@ export default function Header() {
                     variant="default"
                     className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                     // onClick={openSignupModal}
-                    onClick={() => router.push("/auth/signup?type=client")}
+                    onClick={() => {
+                      router.push("/auth/signup?type=client");
+                    }}
                   >
                     Get Started
                   </Button>
@@ -162,9 +169,9 @@ export default function Header() {
 
       {/* Signup Modal */}
       {/* <SignupModal
-      //   isOpen={isSignupModalOpen}
-      //   onClose={() => setIsSignupModalOpen(false)}
-      // /> */}
+        isOpen={isSignupModalOpen}
+        onClose={() => setIsSignupModalOpen(false)}
+      /> */}
     </>
   );
 }

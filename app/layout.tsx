@@ -1,10 +1,10 @@
-import './globals.css';
-import type { Metadata } from 'next';
-import { AIChatWidget } from '@/components/ui/ai-chat-widget';
+import "./globals.css";
+import type { Metadata } from "next";
+import LiveChatWidget from "@/components/LiveChatWidget";
 
 export const metadata: Metadata = {
-  title: 'OmniDeploy',
-  description: 'Modern warehouse and delivery management',
+  title: "OmniDeploy",
+  description: "Modern warehouse and delivery management",
 };
 
 export default function RootLayout({
@@ -17,7 +17,7 @@ export default function RootLayout({
       <body>
         <div id="app">
           {children}
-          <AIChatWidget />
+          <LiveChatWidget />
         </div>
       </body>
     </html>
