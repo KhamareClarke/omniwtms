@@ -199,7 +199,7 @@ export default function HeroSection() {
                   "_blank"
                 )
               }
-              className="px-10 py-4 text-xl font-bold uppercase rounded-full bg-[#ffe600] text-white border-2 border-[#ffe600] transition-colors duration-200 hover:bg-[#fffbe6] focus:outline-none focus:ring-2 focus:ring-[#ffe600] focus:ring-offset-2 antialiased flex items-center gap-2 justify-center"
+              className="px-10 py-4 text-xl font-bold uppercase rounded-full bg-gray-900 text-white border-2 border-gray-900 transition-colors duration-200 hover:bg-gray-800 hover:border-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-700 focus:ring-offset-2 antialiased flex items-center gap-2 justify-center shadow-lg"
             >
               <span className="relative z-10 flex items-center gap-2">
                 {secondaryCta}
