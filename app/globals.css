@@ -318,10 +318,17 @@
   /* Fallback for devices that don't support gradient text */
   @supports not (-webkit-background-clip: text) {
     .bg-clip-text {
-      color: #60a5fa !important;
-      -webkit-text-fill-color: #60a5fa !important;
-      text-shadow: 0 2px 4px rgba(0,0,0,0.3) !important;
+      color: #ffffff !important;
+      -webkit-text-fill-color: #ffffff !important;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.5) !important;
+      background: none !important;
     }
+  }
+  
+  /* Additional fallback for older browsers */
+  h1[style*="background-clip"] {
+    color: #ffffff !important;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5) !important;
   }
 }
 
