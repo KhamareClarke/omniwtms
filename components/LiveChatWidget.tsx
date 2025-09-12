@@ -67,10 +67,13 @@ const LiveChatWidget = () => {
   }, [messages]);
 
   useEffect(() => {
+    // Check if device is mobile
+    const isMobile = window.innerWidth <= 768;
+    
     const timer = setTimeout(() => {
       setIsAnimating(true);
       setTimeout(() => {
-        setIsOpen(true);
+        setIsOpen(isMobile); // Auto-open only on mobile
         setIsAnimating(false);
       }, 300);
     }, 2000);
