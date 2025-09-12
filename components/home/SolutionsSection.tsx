@@ -87,7 +87,7 @@ export default function SolutionsSection() {
             onClick={() => {
               window.open("https://calendly.com/khamareclarke/30min", "_blank");
             }}
-            className="inline-flex items-center px-6 py-3 rounded-lg bg-gray-900 text-white font-bold text-lg shadow-lg hover:bg-gray-800 transition-all duration-200 border-2 border-gray-900 hover:border-gray-800"
+            className="inline-flex items-center px-6 py-3 rounded-lg bg-yellow-600 text-white font-bold text-lg shadow-lg hover:bg-yellow-700 transition-all duration-200 border-2 border-yellow-600 hover:border-yellow-700"
           >
             Download Our Solutions Brochure
           </button>
