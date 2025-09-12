@@ -17,61 +17,113 @@ export default function SolutionsSection() {
           of the competition.
         </p>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          <div className="bg-white rounded-2xl shadow-lg p-8 border border-blue-100 hover:shadow-xl transition flex flex-col items-center text-center">
-            <span className="text-4xl mb-3">📈</span>
-            <h3 className="text-2xl font-bold text-blue-700 mb-2">
+          <div className="bg-white rounded-2xl shadow-lg p-10 border border-blue-100 hover:shadow-xl transition flex flex-col items-center text-center min-h-[400px]">
+            <div className="bg-blue-50 rounded-full p-4 mb-6">
+              <span className="text-4xl">📈</span>
+            </div>
+            <h3 className="text-2xl font-bold text-blue-700 mb-6">
               Optimize Your Warehouse Operations
             </h3>
-            <ul className="list-disc pl-5 text-gray-700 space-y-2 text-left mb-3">
-              <li>Maximize storage capacity and reduce costs</li>
-              <li>Streamline inventory management and tracking</li>
-              <li>Improve order fulfillment and shipping accuracy</li>
+            <ul className="space-y-4 text-gray-700 text-left mb-8 flex-grow">
+              <li className="flex items-start gap-3">
+                <span className="text-blue-500 mt-1 flex-shrink-0">✓</span>
+                <span>Maximize storage capacity and reduce costs</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="text-blue-500 mt-1 flex-shrink-0">✓</span>
+                <span>Streamline inventory management and tracking</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="text-blue-500 mt-1 flex-shrink-0">✓</span>
+                <span>Improve order fulfillment and shipping accuracy</span>
+              </li>
             </ul>
-            <span className="text-xs text-blue-700 font-semibold mt-auto">
-              For: Warehouse Managers, Logistics Coordinators
-            </span>
+            <div className="bg-blue-50 rounded-lg p-3 w-full">
+              <span className="text-sm text-blue-700 font-semibold">
+                For: Warehouse Managers, Logistics Coordinators
+              </span>
+            </div>
           </div>
-          <div className="bg-white rounded-2xl shadow-lg p-8 border border-indigo-100 hover:shadow-xl transition flex flex-col items-center text-center">
-            <span className="text-4xl mb-3">🚚</span>
-            <h3 className="text-2xl font-bold text-indigo-700 mb-2">
+          <div className="bg-white rounded-2xl shadow-lg p-10 border border-indigo-100 hover:shadow-xl transition flex flex-col items-center text-center min-h-[400px]">
+            <div className="bg-indigo-50 rounded-full p-4 mb-6">
+              <span className="text-4xl">🚚</span>
+            </div>
+            <h3 className="text-2xl font-bold text-indigo-700 mb-6">
               Transform Your Transportation Operations
             </h3>
-            <ul className="list-disc pl-5 text-gray-700 space-y-2 text-left mb-3">
-              <li>Optimize routes and reduce fuel consumption</li>
-              <li>Improve driver safety and reduce accidents</li>
-              <li>Enhance customer experience with real-time tracking</li>
+            <ul className="space-y-4 text-gray-700 text-left mb-8 flex-grow">
+              <li className="flex items-start gap-3">
+                <span className="text-indigo-500 mt-1 flex-shrink-0">✓</span>
+                <span>Optimize routes and reduce fuel consumption</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="text-indigo-500 mt-1 flex-shrink-0">✓</span>
+                <span>Improve driver safety and reduce accidents</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="text-indigo-500 mt-1 flex-shrink-0">✓</span>
+                <span>Enhance customer experience with real-time tracking</span>
+              </li>
             </ul>
-            <span className="text-xs text-indigo-700 font-semibold mt-auto">
-              For: Transportation Managers, Fleet Operators
-            </span>
+            <div className="bg-indigo-50 rounded-lg p-3 w-full">
+              <span className="text-sm text-indigo-700 font-semibold">
+                For: Transportation Managers, Fleet Operators
+              </span>
+            </div>
           </div>
-          <div className="bg-white rounded-2xl shadow-lg p-8 border border-purple-100 hover:shadow-xl transition flex flex-col items-center text-center">
-            <span className="text-4xl mb-3">📊</span>
-            <h3 className="text-2xl font-bold text-purple-700 mb-2">
+          <div className="bg-white rounded-2xl shadow-lg p-10 border border-purple-100 hover:shadow-xl transition flex flex-col items-center text-center min-h-[400px]">
+            <div className="bg-purple-50 rounded-full p-4 mb-6">
+              <span className="text-4xl">📊</span>
+            </div>
+            <h3 className="text-2xl font-bold text-purple-700 mb-6">
               Unlock Data-Driven Insights
             </h3>
-            <ul className="list-disc pl-5 text-gray-700 space-y-2 text-left mb-3">
-              <li>Gain real-time visibility into your operations</li>
-              <li>Make data-driven decisions with customizable dashboards</li>
-              <li>Improve operational efficiency and reduce costs</li>
+            <ul className="space-y-4 text-gray-700 text-left mb-8 flex-grow">
+              <li className="flex items-start gap-3">
+                <span className="text-purple-500 mt-1 flex-shrink-0">✓</span>
+                <span>Gain real-time visibility into your operations</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="text-purple-500 mt-1 flex-shrink-0">✓</span>
+                <span>Make data-driven decisions with customizable dashboards</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="text-purple-500 mt-1 flex-shrink-0">✓</span>
+                <span>Improve operational efficiency and reduce costs</span>
+              </li>
             </ul>
-            <span className="text-xs text-purple-700 font-semibold mt-auto">
-              For: Operations Managers, Business Analysts
-            </span>
+            <div className="bg-purple-50 rounded-lg p-3 w-full">
+              <span className="text-sm text-purple-700 font-semibold">
+                For: Operations Managers, Business Analysts
+              </span>
+            </div>
           </div>
-          <div className="bg-white rounded-2xl shadow-lg p-8 border border-green-100 hover:shadow-xl transition flex flex-col items-center text-center">
-            <span className="text-4xl mb-3">📈</span>
-            <h3 className="text-2xl font-bold text-green-700 mb-2">
+          <div className="bg-white rounded-2xl shadow-lg p-10 border border-green-100 hover:shadow-xl transition flex flex-col items-center text-center min-h-[400px]">
+            <div className="bg-green-50 rounded-full p-4 mb-6">
+              <span className="text-4xl">📈</span>
+            </div>
+            <h3 className="text-2xl font-bold text-green-700 mb-6">
               Delight Your Customers
             </h3>
-            <ul className="list-disc pl-5 text-gray-700 space-y-2 text-left mb-3">
-              <li>Provide real-time order tracking and updates</li>
-              <li>Offer flexible delivery options and scheduling</li>
-              <li>Improve customer satisfaction and loyalty</li>
+            <ul className="space-y-4 text-gray-700 text-left mb-8 flex-grow">
+              <li className="flex items-start gap-3">
+                <span className="text-green-500 mt-1 flex-shrink-0">✓</span>
+                <span>Provide real-time order tracking and updates</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="text-green-500 mt-1 flex-shrink-0">✓</span>
+                <span>Offer flexible delivery options and scheduling</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="text-green-500 mt-1 flex-shrink-0">✓</span>
+                <span>Improve customer satisfaction and loyalty</span>
+              </li>
             </ul>
-            <span className="text-xs text-green-700 font-semibold mt-auto">
-              For: Customer Service Managers, Marketing Teams
-            </span>
+            <div className="bg-green-50 rounded-lg p-3 w-full">
+              <span className="text-sm text-green-700 font-semibold">
+                For: Customer Service Managers, Marketing Teams
+              </span>
+            </div>
           </div>
         </div>
         <div className="flex flex-col md:flex-row items-center justify-center gap-6 mt-10">
