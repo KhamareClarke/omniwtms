@@ -16,10 +16,19 @@ export default function CookieConsent() {
     setIsMounted(true);
     
     // Check if consent was already given
-    const consentGiven = localStorage.getItem('cookie-consent');
-    
-    if (!consentGiven) {
-      // Only show banner if consent hasn't been given
+    try {
+      const consentGiven = localStorage.getItem('cookie-consent');
+      
+      if (!consentGiven) {
+        // Only show banner if consent hasn't been given
+        setIsVisible(true);
+      } else {
+        // Ensure banner is hidden if consent was given
+        setIsVisible(false);
+      }
+    } catch (error) {
+      // If localStorage is not available, show the banner
+      console.warn('localStorage not available:', error);
       setIsVisible(true);
     }
     
@@ -39,12 +48,29 @@ export default function CookieConsent() {
   }, []);
   
   const acceptAll = () => {
-    localStorage.setItem('cookie-consent', 'all');
+    try {
+      localStorage.setItem('cookie-consent', 'all');
+    } catch (error) {
+      console.warn('Failed to save cookie consent to localStorage:', error);
+    }
     setIsVisible(false);
   };
   
   const acceptEssential = () => {
-    localStorage.setItem('cookie-consent', 'essential');
+    try {
+      localStorage.setItem('cookie-consent', 'essential');
+    } catch (error) {
+      console.warn('Failed to save cookie consent to localStorage:', error);
+    }
+    setIsVisible(false);
+  };
+
+  const closeBanner = () => {
+    try {
+      localStorage.setItem('cookie-consent', 'dismissed');
+    } catch (error) {
+      console.warn('Failed to save cookie consent to localStorage:', error);
+    }
     setIsVisible(false);
   };
 
@@ -63,7 +89,15 @@ export default function CookieConsent() {
           transition={{ duration: 0.4 }}
           className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-blue-100 shadow-lg w-full"
         >
-          <div className={`w-full max-w-7xl mx-auto px-3 py-4 ${isPixel8Width ? 'px-2 py-3' : 'sm:p-4 md:p-6'}`}>
+          <div className={`w-full max-w-7xl mx-auto px-3 py-4 ${isPixel8Width ? 'px-2 py-3' : 'sm:p-4 md:p-6'} relative`}>
+            {/* Close button */}
+            <button 
+              onClick={closeBanner}
+              className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 transition-colors"
+              aria-label="Close cookie banner"
+            >
+              <X className="h-5 w-5" />
+            </button>
             <div className="flex flex-col md:flex-row items-start md:items-center gap-3 md:gap-4">
               <div className="bg-blue-100 p-2 sm:p-3 rounded-full hidden sm:block">
                 <Cookie className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
