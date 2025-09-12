@@ -133,27 +133,40 @@ export default function HeroSection() {
           <div className="relative flex flex-col items-center justify-center min-h-[110px] xs:min-h-[140px] sm:min-h-[180px] md:min-h-[220px] lg:min-h-[260px] w-full">
             <h1
               className={clsx(
-                "font-sora text-[2rem] xs:text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-black tracking-tight text-center select-none uppercase",
-                "bg-gradient-to-r from-blue-400 via-purple-300 to-indigo-400 text-transparent bg-clip-text drop-shadow-[0_2px_32px_rgba(56,0,160,0.22)]",
-                "antialiased",
-                "break-words max-w-full"
+                "font-sora text-2xl xs:text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-black tracking-tight text-center select-none uppercase",
+                "bg-gradient-to-r from-blue-400 via-purple-300 to-indigo-400 text-transparent bg-clip-text",
+                "antialiased drop-shadow-lg",
+                "break-words max-w-full px-2",
+                "min-h-[80px] xs:min-h-[100px] sm:min-h-[120px] md:min-h-[180px] flex items-center justify-center"
               )}
               aria-live="polite"
               style={{
                 WebkitFontSmoothing: "antialiased",
-                lineHeight: 1.12,
-                letterSpacing: "-.015em",
+                lineHeight: 1.2,
+                letterSpacing: "-.01em",
+                WebkitBackgroundClip: "text",
+                backgroundClip: "text",
               }}
             >
-              {typed}
+              <span className="relative">
+                {typed}
+                {/* Fallback text for mobile devices that might not support gradient text */}
+                <span className="absolute inset-0 text-white opacity-0 sm:opacity-0" 
+                      style={{ 
+                        display: typed && !typed.includes('gradient') ? 'block' : 'none',
+                        textShadow: '0 2px 4px rgba(0,0,0,0.5)' 
+                      }}>
+                  {typed}
+                </span>
+              </span>
               {showCursor ? (
                 <span
                   className={clsx(
-                    "inline-block w-3 animate-blink transition-opacity duration-700",
-                    !isTyping && sentenceIdx === 3 ? "opacity-0" : "opacity-100"
+                    "inline-block w-1 sm:w-2 md:w-3 animate-pulse ml-1",
+                    "bg-blue-400 h-6 xs:h-8 sm:h-10 md:h-16 lg:h-20",
+                    !isTyping && sentenceIdx === 4 ? "opacity-0" : "opacity-100"
                   )}
                 >
-                  |
                 </span>
               ) : null}
             </h1>
