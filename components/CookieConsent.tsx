@@ -18,12 +18,15 @@ export default function CookieConsent() {
     // Check if consent was already given
     try {
       const consentGiven = localStorage.getItem('cookie-consent');
+      console.log('Cookie consent check - stored value:', consentGiven);
       
       if (!consentGiven) {
         // Only show banner if consent hasn't been given
+        console.log('No consent found, showing banner');
         setIsVisible(true);
       } else {
         // Ensure banner is hidden if consent was given
+        console.log('Consent found, hiding banner');
         setIsVisible(false);
       }
     } catch (error) {
@@ -48,30 +51,39 @@ export default function CookieConsent() {
   }, []);
   
   const acceptAll = () => {
+    console.log('Accept All clicked');
     try {
       localStorage.setItem('cookie-consent', 'all');
+      console.log('localStorage set to "all"');
     } catch (error) {
       console.warn('Failed to save cookie consent to localStorage:', error);
     }
     setIsVisible(false);
+    console.log('isVisible set to false');
   };
   
   const acceptEssential = () => {
+    console.log('Accept Essential clicked');
     try {
       localStorage.setItem('cookie-consent', 'essential');
+      console.log('localStorage set to "essential"');
     } catch (error) {
       console.warn('Failed to save cookie consent to localStorage:', error);
     }
     setIsVisible(false);
+    console.log('isVisible set to false');
   };
 
   const closeBanner = () => {
+    console.log('Close banner clicked');
     try {
       localStorage.setItem('cookie-consent', 'dismissed');
+      console.log('localStorage set to "dismissed"');
     } catch (error) {
       console.warn('Failed to save cookie consent to localStorage:', error);
     }
     setIsVisible(false);
+    console.log('isVisible set to false');
   };
 
   if (!isMounted) return null;
@@ -87,13 +99,14 @@ export default function CookieConsent() {
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 100, opacity: 0 }}
           transition={{ duration: 0.4 }}
-          className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-blue-100 shadow-lg w-full"
+          className="fixed bottom-0 left-0 right-0 z-[9999] bg-white border-t border-blue-100 shadow-lg w-full"
         >
           <div className={`w-full max-w-7xl mx-auto px-3 py-4 ${isPixel8Width ? 'px-2 py-3' : 'sm:p-4 md:p-6'} relative`}>
             {/* Close button */}
             <button 
               onClick={closeBanner}
-              className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 transition-colors"
+              className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer pointer-events-auto z-10"
+              style={{ pointerEvents: 'auto' }}
               aria-label="Close cookie banner"
             >
               <X className="h-5 w-5" />
@@ -116,18 +129,20 @@ export default function CookieConsent() {
 </p>
               </div>
               
-              <div className="flex flex-row gap-2 sm:gap-3 w-full md:w-auto mt-3 md:mt-0 justify-center">
+              <div className="flex flex-row gap-2 sm:gap-3 w-full md:w-auto mt-3 md:mt-0 justify-center relative z-10">
                 <Button 
                   onClick={acceptEssential}
                   variant="outline"
-                  className="border border-gray-200 hover:bg-gray-50 text-gray-700 text-xs sm:text-sm py-1 px-2 sm:px-4 h-auto"
+                  className="border border-gray-200 hover:bg-gray-50 text-gray-700 text-xs sm:text-sm py-1 px-2 sm:px-4 h-auto cursor-pointer pointer-events-auto relative z-10"
+                  style={{ pointerEvents: 'auto' }}
                 >
                   Essential Only
                 </Button>
                 
                 <Button 
                   onClick={acceptAll}
-                  className="bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm py-1 px-3 sm:px-4 h-auto"
+                  className="bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm py-1 px-3 sm:px-4 h-auto cursor-pointer pointer-events-auto relative z-10"
+                  style={{ pointerEvents: 'auto' }}
                 >
                   Accept All
                 </Button>
