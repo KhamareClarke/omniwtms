@@ -121,7 +121,7 @@ export default function HeroSection() {
         </div>
         <div className="container mx-auto relative z-10 px-2 sm:px-4 md:px-6 lg:px-8 flex flex-col items-center justify-center">
           {/* AI Tagline */}
-          <div className="flex items-center justify-center mb-8 mt-8 sm:mt-6 md:mt-4 px-2">
+          <div className="flex items-center justify-center mb-8 mt-16 sm:mt-12 md:mt-8 px-2">
             <div className="inline-flex items-center px-2 sm:px-4 md:px-5 py-2 rounded-full bg-gradient-to-r from-blue-100 via-purple-100 to-indigo-100 shadow-md w-full max-w-[95vw] sm:max-w-none">
               <span className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl font-semibold text-blue-700 text-center leading-tight w-full">
                 <span className="block xs:hidden">AI Warehouse & Transport System</span>
