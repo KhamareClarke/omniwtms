@@ -121,10 +121,11 @@ export default function HeroSection() {
         </div>
         <div className="container mx-auto relative z-10 px-2 sm:px-4 md:px-6 lg:px-8 flex flex-col items-center justify-center">
           {/* AI Tagline */}
-          <div className="flex items-center justify-center mb-8 mt-2">
-            <div className="inline-flex items-center px-5 py-2 rounded-full bg-gradient-to-r from-blue-100 via-purple-100 to-indigo-100 shadow-md">
-              <span className="text-lg md:text-xl font-semibold text-blue-700 tracking-wide">
-                AI-Powered UK Warehouse & Transport Management System
+          <div className="flex items-center justify-center mb-8 mt-2 px-4">
+            <div className="inline-flex items-center px-3 sm:px-5 py-2 rounded-full bg-gradient-to-r from-blue-100 via-purple-100 to-indigo-100 shadow-md max-w-full">
+              <span className="text-sm sm:text-base md:text-lg lg:text-xl font-semibold text-blue-700 tracking-wide text-center leading-tight">
+                <span className="block sm:hidden">AI-Powered UK Warehouse & Transport System</span>
+                <span className="hidden sm:block">AI-Powered UK Warehouse & Transport Management System</span>
               </span>
             </div>
           </div>
