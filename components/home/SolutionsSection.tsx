@@ -131,7 +131,7 @@ export default function SolutionsSection() {
             onClick={() => {
               window.open("https://calendly.com/khamareclarke/30min", "_blank");
             }}
-            className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-lg font-bold rounded-xl shadow-xl hover:scale-105 transition-all duration-300 border-0"
+            className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-yellow-400 to-yellow-600 text-white font-bold rounded-lg shadow-lg hover:scale-105 transition-all duration-300 border-0 text-lg"
           >
             See How OmniWTMS Helps
           </button>
@@ -139,7 +139,7 @@ export default function SolutionsSection() {
             onClick={() => {
               window.open("https://calendly.com/khamareclarke/30min", "_blank");
             }}
-            className="inline-flex items-center px-6 py-3 rounded-lg bg-yellow-600 text-white font-bold text-lg shadow-lg hover:bg-yellow-700 transition-all duration-200 border-2 border-yellow-600 hover:border-yellow-700"
+            className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-yellow-400 to-yellow-600 text-white font-bold rounded-lg shadow-lg hover:scale-105 transition-all duration-300 border-0 text-lg"
           >
             Download Our Solutions Brochure
           </button>

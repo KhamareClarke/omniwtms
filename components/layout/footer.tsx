@@ -172,7 +172,7 @@ export default function Footer() {
           <a
             href="/brochure.pdf"
             target="_blank"
-            className="px-6 py-3 rounded-full bg-yellow-600 text-white font-bold shadow-lg hover:bg-yellow-700 transition-all duration-200 text-base border-2 border-yellow-600 hover:border-yellow-700"
+            className="px-6 py-3 bg-gradient-to-r from-yellow-400 to-yellow-600 text-white font-bold rounded-lg shadow-lg hover:scale-105 transition-all duration-300 border-0 text-base"
           >
             Download Brochure
           </a>

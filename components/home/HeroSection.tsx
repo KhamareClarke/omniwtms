@@ -210,7 +210,7 @@ export default function HeroSection() {
                   "_blank"
                 )
               }
-              className="px-10 py-4 text-xl font-bold uppercase rounded-full bg-yellow-600 text-white border-2 border-yellow-600 transition-colors duration-200 hover:bg-yellow-700 hover:border-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 antialiased flex items-center gap-2 justify-center shadow-lg"
+              className="px-10 py-4 text-xl font-bold uppercase rounded-lg bg-gradient-to-r from-yellow-400 to-yellow-600 text-white shadow-lg hover:scale-105 transition-all duration-300 border-0 antialiased flex items-center gap-2 justify-center"
             >
               <span className="relative z-10 flex items-center gap-2">
                 {secondaryCta}
