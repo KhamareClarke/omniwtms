@@ -67,13 +67,11 @@ const LiveChatWidget = () => {
   }, [messages]);
 
   useEffect(() => {
-    // Check if device is mobile
-    const isMobile = window.innerWidth <= 768;
-    
+    // Chatbot starts closed on all devices
     const timer = setTimeout(() => {
       setIsAnimating(true);
       setTimeout(() => {
-        setIsOpen(isMobile); // Auto-open only on mobile
+        setIsOpen(false); // Keep closed on all devices
         setIsAnimating(false);
       }, 300);
     }, 2000);
